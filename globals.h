@@ -1,0 +1,29 @@
+//
+// Created by PC-SAMUEL on 22/11/2024.
+//
+
+#ifndef SOULS_VISION_GLOBALS_H
+#define SOULS_VISION_GLOBALS_H
+#include <windows.h>
+
+#include <atomic>
+#include <cstdint>
+#include <string>
+#include "imgui.h"
+
+namespace souls_vision {
+
+struct Size {
+    int width;
+    int height;
+};
+
+extern const wchar_t* gWindowClass;
+extern HWND gGameWindow;
+extern Size gGameWindowSize;
+extern std::string gDllPath;
+extern std::atomic_bool gRunning;
+
+}
+
+#endif //SOULS_VISION_GLOBALS_H

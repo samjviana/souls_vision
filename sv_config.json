@@ -1,0 +1,29 @@
+{
+  "debug": false,
+  "bar": {
+    "position": {
+      "x": 2000,
+      "y": 10
+    },
+    "size": {
+      "width": 555,
+      "height": 40
+    },
+    "current": 600,
+    "max": 1244,
+    "hideText": false
+  },
+  "effectBar": {
+    "position": {
+      "x": 2002,
+      "y": 10
+    },
+    "size": {
+      "width": 555,
+      "height": 40
+    },
+    "current": 600,
+    "max": 1244,
+    "hideText": false
+  }
+}
