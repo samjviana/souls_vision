@@ -297,7 +297,7 @@ void Overlay::Draw(ID3D12Device* device) {
     // Stamina Bar
     int stamina = targetChrIns->moduleBag->statModule->stamina;
     int maxStamina = targetChrIns->moduleBag->statModule->maxStamina;
-    if (!(stamina > maxStamina || maxStamina <= 0)) {
+    if (targetChrIns->chrType != 5 && !(stamina > maxStamina || maxStamina <= 0)) {
         BarSettings barSettings = Config::defaultBarSettings;
         barSettings.currentValue = (float)stamina;
         barSettings.maxValue = (float)maxStamina;
