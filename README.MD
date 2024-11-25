@@ -17,6 +17,29 @@ The first time the game opens with the mod it will generate a default sv_config.
         * **`width`**: *int* - Width of the bar in pixels.
         * **`height`**: *int* - Height of the bar in pixels.
     * **`hideText`**: *bool* - If set to `true`, hides the text displayed on the bar (e.g. “90/219”).
+    "deathBlight": true,
+    "fp": true,
+    "frostbite": true,
+    "hemorrhage": true,
+    "hp": true,
+    "madness": true,
+    "poison": true,
+    "scarletRot": true,
+    "sleep": true,
+    "stagger": true,
+    "stamina": true
+* **`barVisibility`**: *object* - Configuration for the visibility of the bars. All the bars are visible by default.
+  * **`hp`**: *bool* - If set to `false`, the HP bar will be hidden.
+  * **`fp`**: *bool* - If set to `false`, the FP bar will be hidden.
+  * **`stamina`**: *bool* - If set to `false`, the Stamina bar will be hidden.
+  * **`stagger`**: *bool* - If set to `false`, the Stagger bar will be hidden.
+  * **`poison`**: *bool* - If set to `false`, the Poison bar will be hidden.
+  * **`scarletRot`**: *bool* - If set to `false`, the Scarlet Rot bar will be hidden.
+  * **`hemorrhage`**: *bool* - If set to `false`, the Hemorrhage bar will be hidden.
+  * **`deathBlight`**: *bool* - If set to `false`, the Death Blight bar will be hidden.
+  * **`frostbite`**: *bool* - If set to `false`, the Frostbite bar will be hidden.
+  * **`sleep`**: *bool* - If set to `false`, the Sleep bar will be hidden.
+  * **`madness`**: *bool* - If set to `false`, the Madness bar will be hidden.
 </details>
 
 ## Compatibility
@@ -26,6 +49,8 @@ Souls Vision was developed and tested on version 1.16, it is expected to work wi
 Add the `SoulsVision.dll` and `sv_assets` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.1.4] - 25-11-2024**
+    * Added custom visibility config to all the bars
 * **[v0.1.3] - 25-11-2024**
     * Fixed the position of the bars that were overlapping as their size increased
 * **[v0.1.2] - 24-11-2024**
