@@ -7,6 +7,7 @@
 
 namespace souls_vision {
 
+BarVisibility Config::barVisibility;
 BarSettings Config::statBarSettings;
 BarSettings Config::effectBarSettings;
 ImVec2 Config::effectBarIconSize = ImVec2(56, 48);
@@ -39,6 +40,23 @@ bool Config::CheckConfig(const std::string& configFilePath) {
 
         if (!configJson.contains("opacity")) {
             configJson["opacity"] = 1.0f;
+            updated = true;
+        }
+
+        if (!configJson.contains("barVisibility")) {
+            configJson["barVisibility"] = {
+                    {"hp", true},
+                    {"fp", true},
+                    {"stamina", true},
+                    {"stagger", true},
+                    {"poison", true},
+                    {"scarletRot", true},
+                    {"hemorrhage", true},
+                    {"deathBlight", true},
+                    {"frostbite", true},
+                    {"sleep", true},
+                    {"madness", true}
+            };
             updated = true;
         }
 
@@ -122,6 +140,18 @@ void Config::LoadConfig(const std::string& configFilePath) {
         Config::debug = configJson["debug"];
         opacity = configJson["opacity"];
 
+        barVisibility.hp = configJson["barVisibility"]["hp"];
+        barVisibility.fp = configJson["barVisibility"]["fp"];
+        barVisibility.stamina = configJson["barVisibility"]["stamina"];
+        barVisibility.stagger = configJson["barVisibility"]["stagger"];
+        barVisibility.poison = configJson["barVisibility"]["poison"];
+        barVisibility.scarletRot = configJson["barVisibility"]["scarletRot"];
+        barVisibility.hemorrhage = configJson["barVisibility"]["hemorrhage"];
+        barVisibility.deathBlight = configJson["barVisibility"]["deathBlight"];
+        barVisibility.frostbite = configJson["barVisibility"]["frostbite"];
+        barVisibility.sleep = configJson["barVisibility"]["sleep"];
+        barVisibility.madness = configJson["barVisibility"]["madness"];
+
         statBarSettings.position = ImVec2(configJson["statBar"]["position"]["x"], configJson["statBar"]["position"]["y"]);
         statBarSettings.size = ImVec2(configJson["statBar"]["size"]["width"], configJson["statBar"]["size"]["height"]);
         statBarSettings.hideText = configJson["statBar"]["hideText"];
@@ -149,6 +179,20 @@ void Config::CreateConfig(const std::string &configFilePath) {
         configJson["debug"] = false;
 
         configJson["opacity"] = 0.9f;
+
+        configJson["barVisibility"] = {
+            {"hp", true},
+            {"fp", true},
+            {"stamina", true},
+            {"stagger", true},
+            {"poison", true},
+            {"scarletRot", true},
+            {"hemorrhage", true},
+            {"deathBlight", true},
+            {"frostbite", true},
+            {"sleep", true},
+            {"madness", true}
+        };
 
         configJson["statBar"]["position"]["x"] = gGameWindowSize.width - barSize.width - 5;
         configJson["statBar"]["position"]["y"] = 10;

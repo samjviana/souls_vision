@@ -18,19 +18,6 @@
 
 namespace souls_vision {
 
-struct BarToRender {
-    BarSettings settings;
-    TextureInfo textureInfo;
-    int decimals = 0;
-};
-
-struct EffectBarToRender {
-    BarSettings settings;
-    TextureInfo textureInfo;
-    ImU32 barColor;
-    int decimals = 0;
-};
-
 class Overlay {
 public:
     static void Initialize();
@@ -44,6 +31,7 @@ private:
     static void CleanupRenderTargets();
     static void InitializeDXResources(IDXGISwapChain3* pSwapChain);
     static void InitializeRenderTargers(IDXGISwapChain3* pSwapChain);
+    static void InitializeBars(ID3D12Device* device);
     static void Draw(ID3D12Device* device);
     static void RenderTargets(IDXGISwapChain3 *pSwapChain);
     static inline int GetCorrectDXGIFormat(int eCurrentFormat);
@@ -51,6 +39,8 @@ private:
     static bool LoadTextureFromFile(const char* fileName, ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle, TextureInfo* textureInfo);
     static bool LoadTextureFromMemory(const void* data, size_t data_size, ID3D12Device* d3d_device, D3D12_CPU_DESCRIPTOR_HANDLE srv_cpu_handle, TextureInfo* textureInfo, float opacity = 1.0f);
     static int GetTextureCount();
+    static void AddStatBar(BarConfig barConfig);
+    static void AddEffectBar(BarConfig barConfig);
 
     static LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -65,6 +55,11 @@ private:
 
     static int textureCount_;
     static std::unordered_map<std::string, TextureInfo> textureMap_;
+
+    static BarRenderer* barRenderer_;
+    static EffectBarRenderer* effectBarRenderer_;
+    static std::vector<BarToRender> barsToRender_;
+    static std::vector<BarToRender> effectBarsToRender_;
 };
 
 } // souls_vision

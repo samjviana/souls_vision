@@ -16,6 +16,7 @@ namespace souls_vision {
 
 class Config {
 public:
+    static BarVisibility barVisibility;
     static BarSettings statBarSettings;
     static BarSettings effectBarSettings;
     static ImVec2 effectBarIconSize;

@@ -7,6 +7,7 @@
 
 #include <d3d12.h>
 #include <imgui.h>
+#include <string>
 
 namespace souls_vision {
 
@@ -38,6 +39,40 @@ struct BarSettings {
     float currentValue = 0;
     float maxValue = 1;
     bool hideText;
+    std::string textureName;
+};
+
+struct BarVisibility {
+    bool hp = true;
+    bool fp = true;
+    bool stamina = true;
+    bool stagger = true;
+    bool poison = true;
+    bool scarletRot = true;
+    bool hemorrhage = true;
+    bool deathBlight = true;
+    bool frostbite = true;
+    bool sleep = true;
+    bool madness = true;
+};
+
+struct BarConfig {
+    BarType type;
+    float currentValue;
+    float maxValue;
+    const char* textureName;
+    ImColor barColor = IM_COL32(255, 255, 255, 255);
+    int decimals = 0;
+    bool isEffect = false;
+    bool condition = true;
+};
+
+struct BarToRender {
+    BarSettings settings;
+    TextureInfo textureInfo;
+    BarConfig config;
+    ImU32 barColor;
+    int decimals = 0;
 };
 
 } // souls_vision
