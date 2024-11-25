@@ -17,7 +17,7 @@ void MainThread();
 std::string GetDllPath(HMODULE hModule);
 std::string GetDllDirectory(HMODULE hModule);
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved);
-Size GetWindowSize();
+Size GetWindowSize(HWND hwnd = nullptr);
 
 DWORD WINAPI Setup(LPVOID lpParam) {
     auto hModule = static_cast<HMODULE>(lpParam);
@@ -28,7 +28,11 @@ DWORD WINAPI Setup(LPVOID lpParam) {
     Logger::Initialize(logFilePath);
     Logger::Info("Starting SoulsVision...");
 
-    gGameWindowSize = GetWindowSize();
+    while (!gGameWindow) {
+        gGameWindow = FindWindowW(nullptr, gWindowClass);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    gGameWindowSize = GetWindowSize(gGameWindow);
 
     std::string configPath = gDllPath + "\\sv_config.json";
     Config::LoadConfig(configPath);
@@ -103,8 +107,10 @@ std::string GetDllDirectory(HMODULE hModule) {
     return path.substr(0, lastSlashIndex);
 }
 
-Size GetWindowSize() {
-    HWND hwnd = FindWindowW(nullptr, gWindowClass);
+Size GetWindowSize(HWND hwnd) {
+    if (!hwnd) {
+        hwnd = FindWindowW(nullptr, gWindowClass);
+    }
 
     RECT rect;
     if (GetClientRect(hwnd, &rect)) {
