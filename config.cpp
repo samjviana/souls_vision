@@ -45,8 +45,6 @@ bool Config::CheckConfig(const std::string& configFilePath) {
             configJson["bar"] = {
                     {"position", {{"x", gGameWindowSize.width - 555 - 5}, {"y", 10}}},
                     {"size", {{"width", 555}, {"height", 40}}},
-                    {"current", 0},
-                    {"max", 100},
                     {"hideText", false}
             };
             updated = true;
@@ -59,14 +57,6 @@ bool Config::CheckConfig(const std::string& configFilePath) {
                 configJson["bar"]["size"] = {{"width", 555}, {"height", 40}};
                 updated = true;
             }
-            if (!configJson["bar"].contains("current")) {
-                configJson["bar"]["current"] = 0;
-                updated = true;
-            }
-            if (!configJson["bar"].contains("max")) {
-                configJson["bar"]["max"] = 100;
-                updated = true;
-            }
             if (!configJson["bar"].contains("hideText")) {
                 configJson["bar"]["hideText"] = false;
                 updated = true;
@@ -77,8 +67,6 @@ bool Config::CheckConfig(const std::string& configFilePath) {
             configJson["effectBar"] = {
                     {"position", {{"x", gGameWindowSize.width - 555 - 3}, {"y", 10}}},
                     {"size", {{"width", 555}, {"height", 40}}},
-                    {"current", 0},
-                    {"max", 100},
                     {"hideText", false}
             };
             updated = true;
@@ -89,14 +77,6 @@ bool Config::CheckConfig(const std::string& configFilePath) {
             }
             if (!configJson["effectBar"].contains("size")) {
                 configJson["effectBar"]["size"] = {{"width", 555}, {"height", 40}};
-                updated = true;
-            }
-            if (!configJson["effectBar"].contains("current")) {
-                configJson["effectBar"]["current"] = 0;
-                updated = true;
-            }
-            if (!configJson["effectBar"].contains("max")) {
-                configJson["effectBar"]["max"] = 100;
                 updated = true;
             }
             if (!configJson["effectBar"].contains("hideText")) {
@@ -144,14 +124,10 @@ void Config::LoadConfig(const std::string& configFilePath) {
         defaultBarSettings.position = ImVec2(configJson["bar"]["position"]["x"], configJson["bar"]["position"]["y"]);
         defaultBarSettings.size = ImVec2(configJson["bar"]["size"]["width"], configJson["bar"]["size"]["height"]);
         defaultBarSettings.currentValue = configJson["bar"]["current"];
-        defaultBarSettings.maxValue = configJson["bar"]["max"];
-        defaultBarSettings.hideText = configJson["bar"]["hideText"];
 
         effectBarSettings.position = ImVec2(configJson["effectBar"]["position"]["x"], configJson["effectBar"]["position"]["y"]);
         effectBarSettings.size = ImVec2(configJson["effectBar"]["size"]["width"], configJson["effectBar"]["size"]["height"]);
         effectBarSettings.currentValue = configJson["effectBar"]["current"];
-        effectBarSettings.maxValue = configJson["effectBar"]["max"];
-        effectBarSettings.hideText = configJson["effectBar"]["hideText"];
 
     } catch (const std::exception& e) {
         Logger::Error(std::string("Config::LoadConfig - Error: ") + e.what());

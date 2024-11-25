@@ -8,6 +8,7 @@ The first time the game opens with the mod it will generate a default sv_config.
 
 ### Fields
 * **`debug`**: *bool* - Enables or disables debug mode. If set to `true`, a console window will open with the game, showing the same information as the one found in the `souls_vision.log`.
+* **`opacity`**: *float* - Opacity of the overlay, from 0.0 (fully transparent) to 1.0 (fully opaque).
 * **`bar`** | **`effectBar`**: *object* - Configuration for the bars, `bar` for the HP, FP, Stamina, Poise and `effectBar` for the Buildup bars.
     * **`position`**: *object* - Determines the bar’s on-screen position from top-left to bottom-right.
         * **`x`**: *int* - Horizontal position of the bar in pixels.
@@ -25,6 +26,8 @@ Souls Vision was developed and tested on version 1.16, it is expected to work wi
 Add the `SoulsVision.dll` and `sv_assets` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.1.2] - 24-11-2024**
+    * Allow configurable opacity to the overlay
 * **[v0.1.1] - 24-11-2024**
     * Fixed the space between the Buildup Bars
 * **[v0.1.0] - 24-11-2024**
