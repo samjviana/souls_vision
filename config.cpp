@@ -12,12 +12,12 @@ BarSettings Config::effectBarSettings;
 float Config::opacity;
 bool Config::debug = false;
 
-void Config::LoadConfig(const std::string& configFilePath)  {
+bool Config::CheckConfig(const std::string& configFilePath) {
     try {
-        // Check if the file exists
         if (!std::filesystem::exists(configFilePath)) {
             Logger::Info("Config file not found. Creating a new one...");
             CreateConfig(configFilePath);
+            return true;
         }
 
         std::ifstream configFile(configFilePath);
@@ -27,9 +27,118 @@ void Config::LoadConfig(const std::string& configFilePath)  {
 
         nlohmann::json configJson;
         configFile >> configJson;
+        configFile.close();
+
+        bool updated = false;
+
+        if (!configJson.contains("debug")) {
+            configJson["debug"] = false;
+            updated = true;
+        }
+
+        if (!configJson.contains("opacity")) {
+            configJson["opacity"] = 1.0f;
+            updated = true;
+        }
+
+        if (!configJson.contains("bar")) {
+            configJson["bar"] = {
+                    {"position", {{"x", gGameWindowSize.width - 555 - 5}, {"y", 10}}},
+                    {"size", {{"width", 555}, {"height", 40}}},
+                    {"current", 0},
+                    {"max", 100},
+                    {"hideText", false}
+            };
+            updated = true;
+        } else {
+            if (!configJson["bar"].contains("position")) {
+                configJson["bar"]["position"] = {{"x", gGameWindowSize.width - 555 - 5}, {"y", 10}};
+                updated = true;
+            }
+            if (!configJson["bar"].contains("size")) {
+                configJson["bar"]["size"] = {{"width", 555}, {"height", 40}};
+                updated = true;
+            }
+            if (!configJson["bar"].contains("current")) {
+                configJson["bar"]["current"] = 0;
+                updated = true;
+            }
+            if (!configJson["bar"].contains("max")) {
+                configJson["bar"]["max"] = 100;
+                updated = true;
+            }
+            if (!configJson["bar"].contains("hideText")) {
+                configJson["bar"]["hideText"] = false;
+                updated = true;
+            }
+        }
+
+        if (!configJson.contains("effectBar")) {
+            configJson["effectBar"] = {
+                    {"position", {{"x", gGameWindowSize.width - 555 - 3}, {"y", 10}}},
+                    {"size", {{"width", 555}, {"height", 40}}},
+                    {"current", 0},
+                    {"max", 100},
+                    {"hideText", false}
+            };
+            updated = true;
+        } else {
+            if (!configJson["effectBar"].contains("position")) {
+                configJson["effectBar"]["position"] = {{"x", gGameWindowSize.width - 555 - 3}, {"y", 10}};
+                updated = true;
+            }
+            if (!configJson["effectBar"].contains("size")) {
+                configJson["effectBar"]["size"] = {{"width", 555}, {"height", 40}};
+                updated = true;
+            }
+            if (!configJson["effectBar"].contains("current")) {
+                configJson["effectBar"]["current"] = 0;
+                updated = true;
+            }
+            if (!configJson["effectBar"].contains("max")) {
+                configJson["effectBar"]["max"] = 100;
+                updated = true;
+            }
+            if (!configJson["effectBar"].contains("hideText")) {
+                configJson["effectBar"]["hideText"] = false;
+                updated = true;
+            }
+        }
+
+        if (updated) {
+            Logger::Info("Config file was missing fields. Updating...");
+            std::ofstream outFile(configFilePath);
+            if (!outFile.is_open()) {
+                throw std::runtime_error("Failed to write to sv_config.json");
+            }
+            outFile << configJson.dump(4);
+            outFile.close();
+            return true;
+        }
+
+        return true;
+    } catch (const std::exception& e) {
+        Logger::Error(std::string("Config::CheckConfig - Error: ") + e.what());
+        return false;
+    }
+}
+
+void Config::LoadConfig(const std::string& configFilePath) {
+    if (!CheckConfig(configFilePath)) {
+        Logger::Warning("Failed to validate config file.");
+        return;
+    }
+
+    try {
+        std::ifstream configFile(configFilePath);
+        if (!configFile.is_open()) {
+            throw std::runtime_error("Failed to open sv_config.json");
+        }
+
+        nlohmann::json configJson;
+        configFile >> configJson;
 
         Config::debug = configJson["debug"];
-
         opacity = configJson["opacity"];
 
         defaultBarSettings.position = ImVec2(configJson["bar"]["position"]["x"], configJson["bar"]["position"]["y"]);
@@ -38,16 +147,17 @@ void Config::LoadConfig(const std::string& configFilePath)  {
         defaultBarSettings.maxValue = configJson["bar"]["max"];
         defaultBarSettings.hideText = configJson["bar"]["hideText"];
 
-        effectBarSettings.position = ImVec2(configJson["effectBar"]["position"]["x"], configJson["bar"]["position"]["y"]);
-        effectBarSettings.size = ImVec2(configJson["effectBar"]["size"]["width"], configJson["bar"]["size"]["height"]);
+        effectBarSettings.position = ImVec2(configJson["effectBar"]["position"]["x"], configJson["effectBar"]["position"]["y"]);
+        effectBarSettings.size = ImVec2(configJson["effectBar"]["size"]["width"], configJson["effectBar"]["size"]["height"]);
         effectBarSettings.currentValue = configJson["effectBar"]["current"];
         effectBarSettings.maxValue = configJson["effectBar"]["max"];
         effectBarSettings.hideText = configJson["effectBar"]["hideText"];
+
     } catch (const std::exception& e) {
         Logger::Error(std::string("Config::LoadConfig - Error: ") + e.what());
     }
 
-    Logger::Info("Config loaded");
+    Logger::Info("Config loaded successfully.");
 }
 
 void Config::CreateConfig(const std::string &configFilePath) {

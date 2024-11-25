@@ -21,6 +21,7 @@ public:
     static float opacity;
     static bool debug;
 
+    static bool CheckConfig(const std::string& configFilePath);
     static void LoadConfig(const std::string& configFilePath);
 
 private:
