@@ -8,7 +8,7 @@ The first time the game opens with the mod it will generate a default sv_config.
 
 ### Fields
 * **`debug`**: *bool* - Enables or disables debug mode. If set to `true`, a console window will open with the game, showing the same information as the one found in the `souls_vision.log`.
-* **`opacity`**: *float* - Opacity of the overlay, from 0.0 (fully transparent) to 1.0 (fully opaque).
+* **`opacity`**: *float* - Opacity of the overlay, from 0.0 (fully transparent) to 1.0 (fully opaque). This option requires the game to be restarted to take effect.
 * **`bar`** | **`effectBar`**: *object* - Configuration for the bars, `bar` for the HP, FP, Stamina, Poise and `effectBar` for the Buildup bars.
     * **`position`**: *object* - Determines the bar’s on-screen position from top-left to bottom-right.
         * **`x`**: *int* - Horizontal position of the bar in pixels.

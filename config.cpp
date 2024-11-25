@@ -123,11 +123,11 @@ void Config::LoadConfig(const std::string& configFilePath) {
 
         defaultBarSettings.position = ImVec2(configJson["bar"]["position"]["x"], configJson["bar"]["position"]["y"]);
         defaultBarSettings.size = ImVec2(configJson["bar"]["size"]["width"], configJson["bar"]["size"]["height"]);
-        defaultBarSettings.currentValue = configJson["bar"]["current"];
+        defaultBarSettings.hideText = configJson["bar"]["hideText"];
 
         effectBarSettings.position = ImVec2(configJson["effectBar"]["position"]["x"], configJson["effectBar"]["position"]["y"]);
         effectBarSettings.size = ImVec2(configJson["effectBar"]["size"]["width"], configJson["effectBar"]["size"]["height"]);
-        effectBarSettings.currentValue = configJson["effectBar"]["current"];
+        effectBarSettings.hideText = configJson["effectBar"]["hideText"];
 
     } catch (const std::exception& e) {
         Logger::Error(std::string("Config::LoadConfig - Error: ") + e.what());
