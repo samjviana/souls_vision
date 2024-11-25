@@ -26,6 +26,8 @@ Souls Vision was developed and tested on version 1.16, it is expected to work wi
 Add the `SoulsVision.dll` and `sv_assets` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.1.3] - 25-11-2024**
+    * Fixed the position of the bars that were overlapping as their size increased
 * **[v0.1.2] - 24-11-2024**
     * Allow configurable opacity to the overlay
 * **[v0.1.1] - 24-11-2024**
