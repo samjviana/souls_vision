@@ -9,6 +9,7 @@ namespace souls_vision {
 
 BarSettings Config::defaultBarSettings;
 BarSettings Config::effectBarSettings;
+float Config::opacity;
 bool Config::debug = false;
 
 void Config::LoadConfig(const std::string& configFilePath)  {
@@ -28,6 +29,8 @@ void Config::LoadConfig(const std::string& configFilePath)  {
         configFile >> configJson;
 
         Config::debug = configJson["debug"];
+
+        opacity = configJson["opacity"];
 
         defaultBarSettings.position = ImVec2(configJson["bar"]["position"]["x"], configJson["bar"]["position"]["y"]);
         defaultBarSettings.size = ImVec2(configJson["bar"]["size"]["width"], configJson["bar"]["size"]["height"]);
@@ -54,6 +57,8 @@ void Config::CreateConfig(const std::string &configFilePath) {
         nlohmann::json configJson;
 
         configJson["debug"] = false;
+
+        configJson["opacity"] = 1.0f;
 
         configJson["bar"]["position"]["x"] = gGameWindowSize.width - barSize.width - 5;
         configJson["bar"]["position"]["y"] = 10;

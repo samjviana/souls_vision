@@ -18,6 +18,7 @@ class Config {
 public:
     static BarSettings defaultBarSettings;
     static BarSettings effectBarSettings;
+    static float opacity;
     static bool debug;
 
     static void LoadConfig(const std::string& configFilePath);

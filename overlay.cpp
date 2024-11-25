@@ -499,7 +499,7 @@ void Overlay::LoadAllTextures(ID3D12Device* device) {
             if (LoadTextureFromFile(filePath.c_str(), device, srvCpuHandle, &textureInfo)) {
                 textureInfo.index = textureIndex++;
                 textureMap_[fileName] = textureInfo;
-                Logger::Info("Texture loaded: " + fileName);
+                Logger::Info(std::format("Loaded texture: {}", fileName));
 
                 srvCpuHandle.ptr += descriptorSize;
             } else {
@@ -527,19 +527,28 @@ bool Overlay::LoadTextureFromFile(const char* fileName, ID3D12Device* device, D3
     fseek(file, 0, SEEK_SET);
     void* fileData = IM_ALLOC(fileSize);
     fread(fileData, 1, fileSize, file);
-    bool ret = LoadTextureFromMemory(fileData, fileSize, device, srvCpuHandle, textureInfo);
+    bool ret = LoadTextureFromMemory(fileData, fileSize, device, srvCpuHandle, textureInfo, Config::opacity);
     IM_FREE(fileData);
 
     return ret;
 }
 
-bool Overlay::LoadTextureFromMemory(const void* data, size_t data_size, ID3D12Device* d3d_device, D3D12_CPU_DESCRIPTOR_HANDLE srv_cpu_handle, TextureInfo* textureInfo){
+bool Overlay::LoadTextureFromMemory(const void* data, size_t data_size, ID3D12Device* d3d_device, D3D12_CPU_DESCRIPTOR_HANDLE srv_cpu_handle, TextureInfo* textureInfo, float opacity){
     // Load from disk into a raw RGBA buffer
     int image_width = 0;
     int image_height = 0;
     unsigned char* image_data = stbi_load_from_memory((const unsigned char*)data, (int)data_size, &image_width, &image_height, NULL, 4);
     if (image_data == NULL)
         return false;
+
+    if (opacity < 0.0f) opacity = 0.0f;
+    if (opacity > 1.0f) opacity = 1.0f;
+    for (int y = 0; y < image_height; y++) {
+        for (int x = 0; x < image_width; x++) {
+            int index = (y * image_width + x) * 4; // RGBA data
+            image_data[index + 3] = static_cast<unsigned char>(image_data[index + 3] * opacity);
+        }
+    }
 
     // Create texture resource
     D3D12_HEAP_PROPERTIES props;
