@@ -270,7 +270,7 @@ void Overlay::Draw(ID3D12Device* device) {
             return;
         }
 
-        BarSettings barSettings = Config::defaultBarSettings;
+        BarSettings barSettings = Config::statBarSettings;
         barSettings.currentValue = currentValue;
         barSettings.maxValue = maxValue;
 
@@ -336,11 +336,11 @@ void Overlay::Draw(ID3D12Device* device) {
     // Render Stat Bars
     for (size_t i = 0; i < barsToRender.size(); ++i) {
         BarToRender& bar = barsToRender[i];
-        bar.settings.position.y += static_cast<float>(i) * (Config::defaultBarSettings.size.y - 10); // Espaçamento vertical entre barras
+        bar.settings.position.y += static_cast<float>(i) * (Config::statBarSettings.size.y - 10); // Espaçamento vertical entre barras
         barRenderer.Render(drawList, bar.settings, bar.textureInfo, bar.decimals);
     }
 
-    const float paddingY = (Config::defaultBarSettings.size.y - 10) * static_cast<float>(barsToRender.size()) + 10.0f;
+    const float paddingY = (Config::statBarSettings.size.y - 10) * static_cast<float>(barsToRender.size()) + 10.0f;
     int shownIndex = 0;
 
     // Render Effect Bars

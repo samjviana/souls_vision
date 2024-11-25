@@ -7,7 +7,7 @@
 
 namespace souls_vision {
 
-BarSettings Config::defaultBarSettings;
+BarSettings Config::statBarSettings;
 BarSettings Config::effectBarSettings;
 ImVec2 Config::effectBarIconSize = ImVec2(56, 48);
 float Config::opacity;
@@ -42,24 +42,24 @@ bool Config::CheckConfig(const std::string& configFilePath) {
             updated = true;
         }
 
-        if (!configJson.contains("bar")) {
-            configJson["bar"] = {
+        if (!configJson.contains("statBar")) {
+            configJson["statBar"] = {
                     {"position", {{"x", gGameWindowSize.width - 555 - 5}, {"y", 10}}},
                     {"size", {{"width", 555}, {"height", 40}}},
                     {"hideText", false}
             };
             updated = true;
         } else {
-            if (!configJson["bar"].contains("position")) {
-                configJson["bar"]["position"] = {{"x", gGameWindowSize.width - 555 - 5}, {"y", 10}};
+            if (!configJson["statBar"].contains("position")) {
+                configJson["statBar"]["position"] = {{"x", gGameWindowSize.width - 555 - 5}, {"y", 10}};
                 updated = true;
             }
-            if (!configJson["bar"].contains("size")) {
-                configJson["bar"]["size"] = {{"width", 555}, {"height", 40}};
+            if (!configJson["statBar"].contains("size")) {
+                configJson["statBar"]["size"] = {{"width", 555}, {"height", 40}};
                 updated = true;
             }
-            if (!configJson["bar"].contains("hideText")) {
-                configJson["bar"]["hideText"] = false;
+            if (!configJson["statBar"].contains("hideText")) {
+                configJson["statBar"]["hideText"] = false;
                 updated = true;
             }
         }
@@ -122,9 +122,9 @@ void Config::LoadConfig(const std::string& configFilePath) {
         Config::debug = configJson["debug"];
         opacity = configJson["opacity"];
 
-        defaultBarSettings.position = ImVec2(configJson["bar"]["position"]["x"], configJson["bar"]["position"]["y"]);
-        defaultBarSettings.size = ImVec2(configJson["bar"]["size"]["width"], configJson["bar"]["size"]["height"]);
-        defaultBarSettings.hideText = configJson["bar"]["hideText"];
+        statBarSettings.position = ImVec2(configJson["statBar"]["position"]["x"], configJson["statBar"]["position"]["y"]);
+        statBarSettings.size = ImVec2(configJson["statBar"]["size"]["width"], configJson["statBar"]["size"]["height"]);
+        statBarSettings.hideText = configJson["statBar"]["hideText"];
 
         effectBarSettings.position = ImVec2(configJson["effectBar"]["position"]["x"], configJson["effectBar"]["position"]["y"]);
         effectBarSettings.size = ImVec2(configJson["effectBar"]["size"]["width"], configJson["effectBar"]["size"]["height"]);
@@ -148,13 +148,13 @@ void Config::CreateConfig(const std::string &configFilePath) {
 
         configJson["debug"] = false;
 
-        configJson["opacity"] = 1.0f;
+        configJson["opacity"] = 0.9f;
 
-        configJson["bar"]["position"]["x"] = gGameWindowSize.width - barSize.width - 5;
-        configJson["bar"]["position"]["y"] = 10;
-        configJson["bar"]["size"]["width"] = barSize.width;
-        configJson["bar"]["size"]["height"] = barSize.height;
-        configJson["bar"]["hideText"] = false;
+        configJson["statBar"]["position"]["x"] = gGameWindowSize.width - barSize.width - 5;
+        configJson["statBar"]["position"]["y"] = 10;
+        configJson["statBar"]["size"]["width"] = barSize.width;
+        configJson["statBar"]["size"]["height"] = barSize.height;
+        configJson["statBar"]["hideText"] = false;
 
         configJson["effectBar"]["position"]["x"] = gGameWindowSize.width - barSize.width - 3;
         configJson["effectBar"]["position"]["y"] = 10;
