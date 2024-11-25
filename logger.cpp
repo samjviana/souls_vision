@@ -22,7 +22,7 @@ void Logger::Initialize(const std::string& logFilePath) {
         logFile_.close();
     }
 
-    logFile_.open(logFilePath, std::ios::out | std::ios::app);
+    logFile_.open(logFilePath, std::ios::out | std::ios::trunc);
     if (!logFile_) {
         std::cerr << "Failed to open log file: " << logFilePath << std::endl;
     }
