@@ -6,6 +6,7 @@
 #include <iostream>
 #include "bar_renderer.h"
 #include "logger.h"
+#include "overlay.h"
 
 namespace souls_vision {
 
@@ -39,8 +40,8 @@ void BarRenderer::Render(ImDrawList* drawList, const BarSettings& settings, cons
 
     ImVec2 framePosition = settings.position;
     ImVec2 frameSize = settings.size;
-    ImVec2 barPosition = ImVec2(framePosition.x + 16, framePosition.y + 5);
-    ImVec2 barSize = ImVec2(frameSize.x - 33, frameSize.y - 11);
+    ImVec2 barPosition = ImVec2(framePosition.x + (frameSize.x * 0.03f), framePosition.y + (frameSize.y * 0.15f));
+    ImVec2 barSize = ImVec2(frameSize.x - (frameSize.x * 0.06f), frameSize.y - (frameSize.y * 0.29f));
 
     float maxValue = std::max((float)settings.maxValue, 1.0f);
     float percentage = (float)settings.currentValue / maxValue;

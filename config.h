@@ -18,6 +18,7 @@ class Config {
 public:
     static BarSettings defaultBarSettings;
     static BarSettings effectBarSettings;
+    static ImVec2 effectBarIconSize;
     static float opacity;
     static bool debug;
 

@@ -6,6 +6,7 @@
 #include "effect_bar_renderer.h"
 #include "logger.h"
 #include "config.h"
+#include "overlay.h"
 
 namespace souls_vision {
 
@@ -34,25 +35,25 @@ void EffectBarRenderer::Render(ImDrawList* drawList, const BarSettings& settings
     D3D12_GPU_DESCRIPTOR_HANDLE frameHandle = GetGpuDescriptorHandle(frameInfo_.index);
     D3D12_GPU_DESCRIPTOR_HANDLE effectIconHandle = GetGpuDescriptorHandle(effectIconInfo.index);
 
-    ImTextureID backgroundTexID = static_cast<ImTextureID>(backgroundHandle.ptr);
-    ImTextureID barTexID = static_cast<ImTextureID>(barHandle.ptr);
-    ImTextureID edgeTexID = static_cast<ImTextureID>(edgeHandle.ptr);
-    ImTextureID frameTexID = static_cast<ImTextureID>(frameHandle.ptr);
-    ImTextureID effectIconTexID = static_cast<ImTextureID>(effectIconHandle.ptr);
+    auto backgroundTexID = static_cast<ImTextureID>(backgroundHandle.ptr);
+    auto barTexID = static_cast<ImTextureID>(barHandle.ptr);
+    auto edgeTexID = static_cast<ImTextureID>(edgeHandle.ptr);
+    auto frameTexID = static_cast<ImTextureID>(frameHandle.ptr);
+    auto effectIconTexID = static_cast<ImTextureID>(effectIconHandle.ptr);
 
-    ImVec2 iconSize = ImVec2(56, 48);
+    ImVec2 iconSize = Config::effectBarIconSize;
 
     ImVec2 framePosition = settings.position;
-    framePosition.x += iconSize.x - 8;
+    framePosition.x += iconSize.x - (iconSize.x * 0.142f);
     framePosition.y += (iconSize.y / 2) - (settings.size.y / 2);
 
     ImVec2 frameSize = settings.size;
     frameSize.x -= iconSize.x;
-    ImVec2 barPosition = ImVec2(framePosition.x, framePosition.y + 5);
-    ImVec2 barSize = ImVec2(frameSize.x - 5, frameSize.y - 11);
+    ImVec2 barPosition = ImVec2(framePosition.x, framePosition.y + (frameSize.y * 0.125f));
+    ImVec2 barSize = ImVec2(frameSize.x - 5, frameSize.y - (frameSize.y * 0.3f));
 
-    float maxValue = std::max((float)settings.maxValue, 1.0f);
-    float percentage = (float)settings.currentValue / maxValue;
+    float maxValue = std::max(settings.maxValue, 1.0f);
+    float percentage = settings.currentValue / maxValue;
 
     // Draw background
     ImVec2 backgroundEnd = ImVec2(barPosition.x + barSize.x, barPosition.y + barSize.y);
@@ -98,7 +99,7 @@ void EffectBarRenderer::Render(ImDrawList* drawList, const BarSettings& settings
     drawList->AddText(textPosition, IM_COL32(255, 255, 255, 255), text.c_str());
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE EffectBarRenderer::GetGpuDescriptorHandle(int index) {
+D3D12_GPU_DESCRIPTOR_HANDLE EffectBarRenderer::GetGpuDescriptorHandle(int index) const {
     D3D12_GPU_DESCRIPTOR_HANDLE handle = {};
     handle.ptr = srvHeapStart_.ptr + descriptorIncrementSize_ * index;
     return handle;

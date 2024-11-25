@@ -13,7 +13,6 @@
 #include "stb_image.h"
 #include "config.h"
 #include "structs/world_chr_man_imp.h"
-#include "effect_bar_renderer.h"
 
 #include <string>
 #include <algorithm>
@@ -252,156 +251,109 @@ void Overlay::Draw(ID3D12Device* device) {
     }
 
     ChrIns* targetChrIns = GameHandler::GetChrInsFromHandle(&localPlayer->targetHandle);
+    if (!targetChrIns) {
+        return;
+    }
 
     ImDrawList* drawList = ImGui::GetForegroundDrawList();
 
-    SIZE_T descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    const SIZE_T descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
     BarRenderer barRenderer(device, srvHeap_->GetGPUDescriptorHandleForHeapStart(), descriptorSize);
     EffectBarRenderer effectBarRenderer(device, srvHeap_->GetGPUDescriptorHandleForHeapStart(), descriptorSize);
 
-    struct BarToRender {
-        BarSettings settings;
-        TextureInfo textureInfo;
-        int decimals = 0;
-    };
     std::vector<BarToRender> barsToRender;
-
-    struct EffectBarToRender {
-        BarSettings settings;
-        TextureInfo textureInfo;
-        ImU32 barColor;
-        int decimals = 0;
-    };
     std::vector<EffectBarToRender> effectBarsToRender;
 
-    // HP Bar
-    int hp = targetChrIns->moduleBag->statModule->hp;
-    int maxHp = targetChrIns->moduleBag->statModule->maxHp;
-    if (!(hp > maxHp || maxHp <= 0)) {
+    auto AddStatusBar = [&](BarType type, float currentValue, float maxValue, const std::string& texturePath, int decimals = 0) {
+        if (currentValue > maxValue || maxValue <= 0.0f) {
+            return;
+        }
+
         BarSettings barSettings = Config::defaultBarSettings;
-        barSettings.currentValue = (float)hp;
-        barSettings.maxValue = (float)maxHp;
-        barsToRender.push_back({barSettings, GetTexture("Red.png")});
+        barSettings.currentValue = currentValue;
+        barSettings.maxValue = maxValue;
+
+        barsToRender.push_back(BarToRender{ barSettings, GetTexture(texturePath), decimals });
+    };
+
+    auto AddEffectBar = [&](BarType type, float currentValue, float maxValue, const std::string& texturePath, ImU32 color, int decimals = 0) {
+        if (currentValue <= 0.0f || maxValue <= 0.0f) {
+            return;
+        }
+
+        BarSettings effectSettings = Config::effectBarSettings;
+        effectSettings.currentValue = maxValue - currentValue;
+        effectSettings.maxValue = maxValue;
+
+        effectBarsToRender.push_back(EffectBarToRender{ effectSettings, GetTexture(texturePath), color, decimals });
+    };
+
+    // HP, FP, Stamina, Stagger
+    AddStatusBar(BarType::HP, static_cast<float>(targetChrIns->moduleBag->statModule->hp),
+                 static_cast<float>(targetChrIns->moduleBag->statModule->maxHp), "Red.png");
+
+    AddStatusBar(BarType::FP, static_cast<float>(targetChrIns->moduleBag->statModule->fp),
+                 static_cast<float>(targetChrIns->moduleBag->statModule->maxFp), "Blue.png");
+
+    if (targetChrIns->chrType != 5) {
+        AddStatusBar(BarType::Stamina, static_cast<float>(targetChrIns->moduleBag->statModule->stamina),
+                     static_cast<float>(targetChrIns->moduleBag->statModule->maxStamina), "Green.png");
     }
 
-    // FP Bar
-    int fp = targetChrIns->moduleBag->statModule->fp;
-    int maxFp = targetChrIns->moduleBag->statModule->maxFp;
-    if (!(fp > maxFp || maxFp <= 0)) {
-        BarSettings barSettings = Config::defaultBarSettings;
-        barSettings.currentValue = (float)fp;
-        barSettings.maxValue = (float)maxFp;
-        barsToRender.push_back({barSettings, GetTexture("Blue.png")});
+    AddStatusBar(BarType::Stagger, targetChrIns->moduleBag->superArmorModule->stagger,
+                 targetChrIns->moduleBag->superArmorModule->maxStagger, "Yellow.png", 2);
+
+    // Poison, ScarletRot, Hemorrhage, DeathBlight, Frostbite, Sleep, Madness
+    AddEffectBar(BarType::Poison, static_cast<float>(targetChrIns->moduleBag->resistModule->poisonResist),
+                 static_cast<float>(targetChrIns->moduleBag->resistModule->maxPoisonResist), "Poison.png",
+                 IM_COL32(100, 113, 0, 255));
+
+    AddEffectBar(BarType::ScarletRot, static_cast<float>(targetChrIns->moduleBag->resistModule->scarletRotResist),
+                 static_cast<float>(targetChrIns->moduleBag->resistModule->maxScarletRotResist), "ScarletRot.png",
+                 IM_COL32(117, 38, 1, 255));
+
+    AddEffectBar(BarType::Hemorrhage, static_cast<float>(targetChrIns->moduleBag->resistModule->hemorrhageResist),
+                 static_cast<float>(targetChrIns->moduleBag->resistModule->maxHemorrhageResist), "Hemorrhage.png",
+                 IM_COL32(95, 11, 11, 255));
+
+    AddEffectBar(BarType::DeathBlight, static_cast<float>(targetChrIns->moduleBag->resistModule->deathBlightResist),
+                 static_cast<float>(targetChrIns->moduleBag->resistModule->maxDeathBlightResist), "DeathBlight.png",
+                 IM_COL32(57, 53, 50, 255));
+
+    AddEffectBar(BarType::Frostbite, static_cast<float>(targetChrIns->moduleBag->resistModule->frostbiteResist),
+                 static_cast<float>(targetChrIns->moduleBag->resistModule->maxFrostbiteResist), "Frostbite.png",
+                 IM_COL32(48, 95, 133, 255));
+
+    AddEffectBar(BarType::Sleep, static_cast<float>(targetChrIns->moduleBag->resistModule->sleepResist),
+                 static_cast<float>(targetChrIns->moduleBag->resistModule->maxSleepResist), "Sleep.png",
+                 IM_COL32(77, 80, 114, 255));
+
+    AddEffectBar(BarType::Madness, static_cast<float>(targetChrIns->moduleBag->resistModule->madnessResist),
+                 static_cast<float>(targetChrIns->moduleBag->resistModule->maxMadnessResist), "Madness.png",
+                 IM_COL32(131, 85, 0, 255));
+
+    // Render Stat Bars
+    for (size_t i = 0; i < barsToRender.size(); ++i) {
+        BarToRender& bar = barsToRender[i];
+        bar.settings.position.y += static_cast<float>(i) * (Config::defaultBarSettings.size.y - 10); // Espaçamento vertical entre barras
+        barRenderer.Render(drawList, bar.settings, bar.textureInfo, bar.decimals);
     }
 
-    // Stamina Bar
-    int stamina = targetChrIns->moduleBag->statModule->stamina;
-    int maxStamina = targetChrIns->moduleBag->statModule->maxStamina;
-    if (targetChrIns->chrType != 5 && !(stamina > maxStamina || maxStamina <= 0)) {
-        BarSettings barSettings = Config::defaultBarSettings;
-        barSettings.currentValue = (float)stamina;
-        barSettings.maxValue = (float)maxStamina;
-        barsToRender.push_back({barSettings, GetTexture("Green.png")});
-    }
-
-    // Stagger Bar
-    float stagger = targetChrIns->moduleBag->superArmorModule->stagger;
-    float maxStagger = targetChrIns->moduleBag->superArmorModule->maxStagger;
-    if (!(stagger > maxStagger || maxStagger <= 0)) {
-        BarSettings barSettings = Config::defaultBarSettings;
-        barSettings.currentValue = stagger;
-        barSettings.maxValue = maxStagger;
-        barsToRender.push_back({barSettings, GetTexture("Yellow.png"), 2});
-    }
-
-    for (int i = 0; i < barsToRender.size(); i++) {
-        BarToRender settings = barsToRender[i];
-        settings.settings.position.y += (float)i * 30;
-
-        barRenderer.Render(drawList, settings.settings, settings.textureInfo, settings.decimals);
-    }
-
-    // Poison Effect Bar
-    int poison = targetChrIns->moduleBag->resistModule->poisonResist;
-    int maxPoison = targetChrIns->moduleBag->resistModule->maxPoisonResist;
-    if (!(poison > maxPoison || maxPoison <= 0)) {
-        BarSettings poisonSettings = Config::effectBarSettings;
-        poisonSettings.currentValue = (float)maxPoison - (float)poison;
-        poisonSettings.maxValue = (float)maxPoison;
-        effectBarsToRender.push_back({poisonSettings, GetTexture("Poison.png"), IM_COL32(100, 113, 0, 255)});
-    }
-
-    // Scarlet Rot Effect Bar
-    int scarletRot = targetChrIns->moduleBag->resistModule->scarletRotResist;
-    int maxScarletRot = targetChrIns->moduleBag->resistModule->maxScarletRotResist;
-    if (!(scarletRot > maxScarletRot || maxScarletRot <= 0)) {
-        BarSettings scarletRotSettings = Config::effectBarSettings;
-        scarletRotSettings.currentValue = (float)maxScarletRot - (float)scarletRot;
-        scarletRotSettings.maxValue = (float)maxScarletRot;
-        effectBarsToRender.push_back({scarletRotSettings, GetTexture("ScarletRot.png"), IM_COL32(117, 38, 1, 255)});
-    }
-
-    // Hemorrhage Effect Bar
-    int hemorrhage = targetChrIns->moduleBag->resistModule->hemorrhageResist;
-    int maxHemorrhage = targetChrIns->moduleBag->resistModule->maxHemorrhageResist;
-    if (!(hemorrhage > maxHemorrhage || maxHemorrhage <= 0)) {
-        BarSettings hemorrhageSettings = Config::effectBarSettings;
-        hemorrhageSettings.currentValue = (float)maxHemorrhage - (float)hemorrhage;
-        hemorrhageSettings.maxValue = (float)maxHemorrhage;
-        effectBarsToRender.push_back({hemorrhageSettings, GetTexture("Hemorrhage.png"), IM_COL32(95, 11, 11, 255)});
-    }
-
-    // DeathBlight Effect Bar
-    int deathBlight = targetChrIns->moduleBag->resistModule->deathBlightResist;
-    int maxDeathBlight = targetChrIns->moduleBag->resistModule->maxDeathBlightResist;
-    if (!(deathBlight > maxDeathBlight || maxDeathBlight <= 0)) {
-        BarSettings deathBlightSettings = Config::effectBarSettings;
-        deathBlightSettings.currentValue = (float)maxDeathBlight - (float)deathBlight;
-        deathBlightSettings.maxValue = (float)maxDeathBlight;
-        effectBarsToRender.push_back({deathBlightSettings, GetTexture("DeathBlight.png"), IM_COL32(57, 53, 50, 255)});
-    }
-
-    // Frostbite Effect Bar
-    int frostbite = targetChrIns->moduleBag->resistModule->frostbiteResist;
-    int maxFrostbite = targetChrIns->moduleBag->resistModule->maxFrostbiteResist;
-    if (!(frostbite > maxFrostbite || maxFrostbite <= 0)) {
-        BarSettings frostbiteSettings = Config::effectBarSettings;
-        frostbiteSettings.currentValue = (float)maxFrostbite - (float)frostbite;
-        frostbiteSettings.maxValue = (float)maxFrostbite;
-        effectBarsToRender.push_back({frostbiteSettings, GetTexture("Frostbite.png"), IM_COL32(48, 95, 133, 255)});
-    }
-
-    // Sleep Effect Bar
-    int sleep = targetChrIns->moduleBag->resistModule->sleepResist;
-    int maxSleep = targetChrIns->moduleBag->resistModule->maxSleepResist;
-    if (!(sleep > maxSleep || maxSleep <= 0)) {
-        BarSettings sleepSettings = Config::effectBarSettings;
-        sleepSettings.currentValue = (float)maxSleep - (float)sleep;
-        sleepSettings.maxValue = (float)maxSleep;
-        effectBarsToRender.push_back({sleepSettings, GetTexture("Sleep.png"), IM_COL32(77, 80, 114, 255)});
-    }
-
-    // Madness Effect Bar
-    int madness = targetChrIns->moduleBag->resistModule->madnessResist;
-    int maxMadness = targetChrIns->moduleBag->resistModule->maxMadnessResist;
-    if (!(madness > maxMadness || maxMadness <= 0)) {
-        BarSettings madnessSettings = Config::effectBarSettings;
-        madnessSettings.currentValue = (float)maxMadness - (float)madness;
-        madnessSettings.maxValue = (float)maxMadness;
-        effectBarsToRender.push_back({madnessSettings, GetTexture("Madness.png"), IM_COL32(131, 85, 0, 255)});
-    }
-
-    float paddingY = 30 * barsToRender.size() + 10;
+    const float paddingY = (Config::defaultBarSettings.size.y - 10) * static_cast<float>(barsToRender.size()) + 10.0f;
     int shownIndex = 0;
-    for (int i = 0; i < effectBarsToRender.size(); i++) {
-        EffectBarToRender settings = effectBarsToRender[i];
-        if (settings.settings.currentValue <= 0) {
+
+    // Render Effect Bars
+    for (const auto& effectBar : effectBarsToRender) {
+        if (effectBar.settings.currentValue <= 0.0f) {
             continue;
         }
 
-        settings.settings.position.y += (float)(shownIndex++ * 50) + paddingY;
+        BarSettings adjustedSettings = effectBar.settings;
+        adjustedSettings.position.y += (static_cast<float>(shownIndex) * (Config::effectBarIconSize.y)) + paddingY;
+        shownIndex++;
 
-        effectBarRenderer.Render(drawList, settings.settings, settings.textureInfo, settings.barColor, settings.decimals);
+        effectBarRenderer.Render(drawList, adjustedSettings, effectBar.textureInfo, effectBar.barColor, effectBar.decimals);
     }
 
     ImGui::EndFrame();

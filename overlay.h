@@ -12,15 +12,23 @@
 #include <unordered_map>
 #include <filesystem>
 #include <wrl/client.h>
+#include "bar_renderer.h"
+#include "effect_bar_renderer.h"
+#include "shared_types.h"
 
 namespace souls_vision {
 
-struct TextureInfo {
-    ID3D12Resource* textureResource = nullptr;
-    int index = -1;
-    int width = 0;
-    int height = 0;
-    D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle;
+struct BarToRender {
+    BarSettings settings;
+    TextureInfo textureInfo;
+    int decimals = 0;
+};
+
+struct EffectBarToRender {
+    BarSettings settings;
+    TextureInfo textureInfo;
+    ImU32 barColor;
+    int decimals = 0;
 };
 
 class Overlay {

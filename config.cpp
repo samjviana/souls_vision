@@ -9,6 +9,7 @@ namespace souls_vision {
 
 BarSettings Config::defaultBarSettings;
 BarSettings Config::effectBarSettings;
+ImVec2 Config::effectBarIconSize = ImVec2(56, 48);
 float Config::opacity;
 bool Config::debug = false;
 
@@ -128,6 +129,9 @@ void Config::LoadConfig(const std::string& configFilePath) {
         effectBarSettings.position = ImVec2(configJson["effectBar"]["position"]["x"], configJson["effectBar"]["position"]["y"]);
         effectBarSettings.size = ImVec2(configJson["effectBar"]["size"]["width"], configJson["effectBar"]["size"]["height"]);
         effectBarSettings.hideText = configJson["effectBar"]["hideText"];
+
+        float iconWidth = effectBarSettings.size.y * 1.70f;
+        effectBarIconSize = ImVec2(iconWidth, iconWidth * 0.85f);
 
     } catch (const std::exception& e) {
         Logger::Error(std::string("Config::LoadConfig - Error: ") + e.what());

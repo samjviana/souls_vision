@@ -7,17 +7,10 @@
 
 #include <d3d12.h>
 #include <imgui.h>
-#include "overlay.h"
+
+#include "shared_types.h"
 
 namespace souls_vision {
-
-struct BarSettings {
-    ImVec2 position;
-    ImVec2 size;
-    float currentValue = 0;
-    float maxValue = 1;
-    bool hideText;
-};
 
 class BarRenderer {
 public:
