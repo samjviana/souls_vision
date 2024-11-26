@@ -20,6 +20,7 @@ public:
     static BarSettings statBarSettings;
     static BarSettings effectBarSettings;
     static ImVec2 effectBarIconSize;
+    static int bestEffects;
     static float opacity;
     static bool debug;
 

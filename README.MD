@@ -9,6 +9,7 @@ The first time the game opens with the mod it will generate a default sv_config.
 ### Fields
 * **`debug`**: *bool* - Enables or disables debug mode. If set to `true`, a console window will open with the game, showing the same information as the one found in the `souls_vision.log`.
 * **`opacity`**: *float* - Opacity of the overlay, from 0.0 (fully transparent) to 1.0 (fully opaque). This option requires the game to be restarted to take effect.
+* **`bestEffects`**: *int* - How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `2`.
 * **`statBar`** | **`effectBar`**: *object* - Configuration for the bars, `statBar` for the HP, FP, Stamina, Poise and `effectBar` for the Buildup bars.
     * **`position`**: *object* - Determines the bar’s on-screen position from top-left to bottom-right.
         * **`x`**: *int* - Horizontal position of the bar in pixels.
@@ -17,17 +18,6 @@ The first time the game opens with the mod it will generate a default sv_config.
         * **`width`**: *int* - Width of the bar in pixels.
         * **`height`**: *int* - Height of the bar in pixels.
     * **`hideText`**: *bool* - If set to `true`, hides the text displayed on the bar (e.g. “90/219”).
-    "deathBlight": true,
-    "fp": true,
-    "frostbite": true,
-    "hemorrhage": true,
-    "hp": true,
-    "madness": true,
-    "poison": true,
-    "scarletRot": true,
-    "sleep": true,
-    "stagger": true,
-    "stamina": true
 * **`barVisibility`**: *object* - Configuration for the visibility of the bars. All the bars are visible by default.
   * **`hp`**: *bool* - If set to `false`, the HP bar will be hidden.
   * **`fp`**: *bool* - If set to `false`, the FP bar will be hidden.
@@ -49,16 +39,20 @@ Souls Vision was developed and tested on version 1.16, it is expected to work wi
 Add the `SoulsVision.dll` and `sv_assets` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.1.5] - 25-11-2024**
+  * Added icons to show best effects to use against the targeted enemy
 * **[v0.1.4] - 25-11-2024**
-    * Added custom visibility config to all the bars
+  * Added custom visibility config to all the bars
 * **[v0.1.3] - 25-11-2024**
-    * Fixed the position of the bars that were overlapping as their size increased
+  * Fixed the position of the bars that were overlapping as their size increased
 * **[v0.1.2] - 24-11-2024**
-    * Allow configurable opacity to the overlay
+  * Allow configurable opacity to the overlay
 * **[v0.1.1] - 24-11-2024**
-    * Fixed the space between the Buildup Bars
+  * Fixed the space between the Buildup Bars
 * **[v0.1.0] - 24-11-2024**
-    * First working version of the mod
+  * First working version of the mod
 
 ## Credits  
-Inspired by [Boss Checklist Overlay](https://www.nexusmods.com/eldenring/mods/3859): A lot of the code here helped me with the DirectX hooking.
+[Boss Checklist Overlay](https://www.nexusmods.com/eldenring/mods/3859): A lot of the code here helped me with the DirectX hooking.</br>
+[Posture Bar](https://www.nexusmods.com/eldenring/mods/3405): The concept of showing additional "bars" gave me the initial idea.</br>
+[Hunter Pie](https://www.nexusmods.com/monsterhunterrise/mods/181): This is first contact that I had with this idea of Overlay. If you're a Monster Hunter player, I highly recommend it.</br>

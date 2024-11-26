@@ -13,6 +13,7 @@
 #include "stb_image.h"
 #include "config.h"
 #include "structs/world_chr_man_imp.h"
+#include "util.h"
 
 #include <string>
 #include <algorithm>
@@ -407,6 +408,15 @@ void Overlay::Draw(ID3D12Device* device) {
         }
     };
 
+    // get the strongest effect against this enemy
+    std::vector<std::tuple<BarType, int>> strongestEffects;
+    std::transform(effectBars.begin(), effectBars.end(), std::back_inserter(strongestEffects), [](const BarConfig& bar) {
+        return std::make_tuple(bar.type, (int)bar.maxValue);
+    });
+    std::sort(strongestEffects.begin(), strongestEffects.end(), [](const auto& a, const auto& b) {
+        return std::get<1>(a) < std::get<1>(b);
+    });
+
     for (const auto& barConfig : statBars) {
         if (!barConfig.condition) {
             continue;
@@ -428,8 +438,35 @@ void Overlay::Draw(ID3D12Device* device) {
         barRenderer_->Render(drawList, bar.settings, bar.textureInfo, bar.decimals);
     }
 
-    const float paddingY = (Config::statBarSettings.size.y - 10) * static_cast<float>(barsToRender_.size()) + 10.0f;
+    float paddingY = (Config::statBarSettings.size.y - 10) * static_cast<float>(barsToRender_.size()) + 10.0f;
     int shownIndex = 0;
+
+    // Render the best N effect bars against the enemy
+    ImVec2 iconSize = Config::effectBarIconSize;
+    iconSize.x *= 0.6f;
+    iconSize.y *= 0.6f;
+    for (int i = 0; i < Config::bestEffects && i < strongestEffects.size(); i++) {
+        auto [barType, maxValue] = strongestEffects[i];
+        TextureInfo effectIcon = GetTexture(GetTextureNameForType(barType));
+        if (!effectIcon.textureResource) {
+            continue;
+        }
+
+        D3D12_GPU_DESCRIPTOR_HANDLE effectIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), effectIcon.index);
+        auto effectIconTexID = static_cast<ImTextureID>(effectIconHandle.ptr);
+
+        int additionalPadding = i == 0 ? 5 : 0;
+        ImVec2 iconPosition = ImVec2(
+            Config::statBarSettings.position.x + (iconSize.x * (float)i) + additionalPadding,
+            paddingY + 5.0f
+        );
+
+        drawList->AddImage(effectIconTexID, iconPosition, ImVec2(iconPosition.x + iconSize.x, iconPosition.y + iconSize.y));
+    }
+
+    if (!strongestEffects.empty() || Config::bestEffects != 0) {
+        paddingY += iconSize.y;
+    }
 
     // Render Effect Bars
     for (const auto& effectBar : effectBarsToRender_) {
@@ -778,6 +815,28 @@ TextureInfo Overlay::GetTexture(const std::string &textureName) {
 
     Logger::Error("Texture not found: " + textureName);
     return {};
+}
+
+std::string Overlay::GetTextureNameForType(BarType type) {
+    std::unordered_map<BarType, std::string> textureNames = {
+        { BarType::HP, "Red.png" },
+        { BarType::FP, "Blue.png" },
+        { BarType::Stamina, "Green.png" },
+        { BarType::Stagger, "Yellow.png" },
+        { BarType::Poison, "Poison.png" },
+        { BarType::ScarletRot, "ScarletRot.png" },
+        { BarType::Hemorrhage, "Hemorrhage.png" },
+        { BarType::DeathBlight, "DeathBlight.png" },
+        { BarType::Frostbite, "Frostbite.png" },
+        { BarType::Sleep, "Sleep.png" },
+        { BarType::Madness, "Madness.png" }
+    };
+
+    if (textureNames.find(type) == textureNames.end()) {
+        return "";
+    }
+
+    return textureNames[type];
 }
 
 LRESULT WINAPI Overlay::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

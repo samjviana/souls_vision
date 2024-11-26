@@ -10,7 +10,7 @@ namespace structs {
 class LoadingScreenData {
 public:
     char pad_0x0000[20];    //0x0000
-    float timer;            //0x0008
+    float timer;            //0x0014
 };
 
 } // structs

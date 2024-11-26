@@ -7,6 +7,7 @@
 #include "logger.h"
 #include "config.h"
 #include "overlay.h"
+#include "util.h"
 
 namespace souls_vision {
 
@@ -29,11 +30,11 @@ void EffectBarRenderer::Render(ImDrawList* drawList, const BarSettings& settings
     }
 
     // Calculate descriptor handles
-    D3D12_GPU_DESCRIPTOR_HANDLE backgroundHandle = GetGpuDescriptorHandle(backgroundInfo_.index);
-    D3D12_GPU_DESCRIPTOR_HANDLE barHandle = GetGpuDescriptorHandle(barInfo_.index);
-    D3D12_GPU_DESCRIPTOR_HANDLE edgeHandle = GetGpuDescriptorHandle(edgeInfo_.index);
-    D3D12_GPU_DESCRIPTOR_HANDLE frameHandle = GetGpuDescriptorHandle(frameInfo_.index);
-    D3D12_GPU_DESCRIPTOR_HANDLE effectIconHandle = GetGpuDescriptorHandle(effectIconInfo.index);
+    D3D12_GPU_DESCRIPTOR_HANDLE backgroundHandle = GetGpuDescriptorHandle(srvHeapStart_, descriptorIncrementSize_, backgroundInfo_.index);
+    D3D12_GPU_DESCRIPTOR_HANDLE barHandle = GetGpuDescriptorHandle(srvHeapStart_, descriptorIncrementSize_, barInfo_.index);
+    D3D12_GPU_DESCRIPTOR_HANDLE edgeHandle = GetGpuDescriptorHandle(srvHeapStart_, descriptorIncrementSize_, edgeInfo_.index);
+    D3D12_GPU_DESCRIPTOR_HANDLE frameHandle = GetGpuDescriptorHandle(srvHeapStart_, descriptorIncrementSize_, frameInfo_.index);
+    D3D12_GPU_DESCRIPTOR_HANDLE effectIconHandle = GetGpuDescriptorHandle(srvHeapStart_, descriptorIncrementSize_, effectIconInfo.index);
 
     auto backgroundTexID = static_cast<ImTextureID>(backgroundHandle.ptr);
     auto barTexID = static_cast<ImTextureID>(barHandle.ptr);
@@ -97,12 +98,6 @@ void EffectBarRenderer::Render(ImDrawList* drawList, const BarSettings& settings
             framePosition.y + (frameSize.y - textSize.y) / 2
     );
     drawList->AddText(textPosition, IM_COL32(255, 255, 255, 255), text.c_str());
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE EffectBarRenderer::GetGpuDescriptorHandle(int index) const {
-    D3D12_GPU_DESCRIPTOR_HANDLE handle = {};
-    handle.ptr = srvHeapStart_.ptr + descriptorIncrementSize_ * index;
-    return handle;
 }
 
 } // souls_vision

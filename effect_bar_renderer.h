@@ -25,8 +25,6 @@ private:
     TextureInfo barInfo_;
     TextureInfo edgeInfo_;
     TextureInfo frameInfo_;
-
-    [[nodiscard]] D3D12_GPU_DESCRIPTOR_HANDLE GetGpuDescriptorHandle(int index) const;
 };
 
 } // souls_vision

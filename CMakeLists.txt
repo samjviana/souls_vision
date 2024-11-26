@@ -46,6 +46,8 @@ add_library(souls_vision SHARED
         effect_bar_renderer.h
         shared_types.cpp
         shared_types.h
+        util.cpp
+        util.h
 )
 
 target_link_libraries(souls_vision PRIVATE d3d12 dxgi dxguid)

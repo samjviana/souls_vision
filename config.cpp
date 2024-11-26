@@ -11,6 +11,7 @@ BarVisibility Config::barVisibility;
 BarSettings Config::statBarSettings;
 BarSettings Config::effectBarSettings;
 ImVec2 Config::effectBarIconSize = ImVec2(56, 48);
+int Config::bestEffects = 2;
 float Config::opacity;
 bool Config::debug = false;
 
@@ -40,6 +41,11 @@ bool Config::CheckConfig(const std::string& configFilePath) {
 
         if (!configJson.contains("opacity")) {
             configJson["opacity"] = 1.0f;
+            updated = true;
+        }
+
+        if (!configJson.contains("bestEffects")) {
+            configJson["bestEffects"] = 2;
             updated = true;
         }
 
@@ -139,6 +145,7 @@ void Config::LoadConfig(const std::string& configFilePath) {
 
         Config::debug = configJson["debug"];
         opacity = configJson["opacity"];
+        bestEffects = configJson["bestEffects"];
 
         barVisibility.hp = configJson["barVisibility"]["hp"];
         barVisibility.fp = configJson["barVisibility"]["fp"];
@@ -171,14 +178,14 @@ void Config::LoadConfig(const std::string& configFilePath) {
 }
 
 void Config::CreateConfig(const std::string &configFilePath) {
-    Size barSize = {555, 40};
+    Size barSize = {600, 40};
 
     try {
         nlohmann::json configJson;
 
         configJson["debug"] = false;
-
         configJson["opacity"] = 0.9f;
+        configJson["bestEffects"] = 2;
 
         configJson["barVisibility"] = {
             {"hp", true},

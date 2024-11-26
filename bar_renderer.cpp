@@ -7,6 +7,7 @@
 #include "bar_renderer.h"
 #include "logger.h"
 #include "overlay.h"
+#include "util.h"
 
 namespace souls_vision {
 
@@ -28,10 +29,10 @@ void BarRenderer::Render(ImDrawList* drawList, const BarSettings& settings, cons
     }
 
     // Calculate descriptor handles
-    D3D12_GPU_DESCRIPTOR_HANDLE backgroundHandle = GetGpuDescriptorHandle(backgroundInfo_.index);
-    D3D12_GPU_DESCRIPTOR_HANDLE barHandle = GetGpuDescriptorHandle(barTexture.index);
-    D3D12_GPU_DESCRIPTOR_HANDLE edgeHandle = GetGpuDescriptorHandle(edgeInfo_.index);
-    D3D12_GPU_DESCRIPTOR_HANDLE frameHandle = GetGpuDescriptorHandle(frameInfo_.index);
+    D3D12_GPU_DESCRIPTOR_HANDLE backgroundHandle = GetGpuDescriptorHandle(srvHeapStart_, descriptorIncrementSize_, backgroundInfo_.index);
+    D3D12_GPU_DESCRIPTOR_HANDLE barHandle = GetGpuDescriptorHandle(srvHeapStart_, descriptorIncrementSize_, barTexture.index);
+    D3D12_GPU_DESCRIPTOR_HANDLE edgeHandle = GetGpuDescriptorHandle(srvHeapStart_, descriptorIncrementSize_, edgeInfo_.index);
+    D3D12_GPU_DESCRIPTOR_HANDLE frameHandle = GetGpuDescriptorHandle(srvHeapStart_, descriptorIncrementSize_, frameInfo_.index);
 
     ImTextureID backgroundTexID = static_cast<ImTextureID>(backgroundHandle.ptr);
     ImTextureID barTexID = static_cast<ImTextureID>(barHandle.ptr);
@@ -83,12 +84,6 @@ void BarRenderer::Render(ImDrawList* drawList, const BarSettings& settings, cons
             framePosition.y + (frameSize.y - textSize.y) / 2
     );
     drawList->AddText(textPosition, IM_COL32(255, 255, 255, 255), text.c_str());
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE BarRenderer::GetGpuDescriptorHandle(int index) {
-    D3D12_GPU_DESCRIPTOR_HANDLE handle = {};
-    handle.ptr = srvHeapStart_.ptr + descriptorIncrementSize_ * index;
-    return handle;
 }
 
 } // souls_vision
