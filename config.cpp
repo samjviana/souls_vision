@@ -9,11 +9,14 @@ namespace souls_vision {
 
 BarVisibility Config::barVisibility;
 BarSettings Config::statBarSettings;
-BarSettings Config::effectBarSettings;
+ImVec2 Config::bestEffectIconSize = ImVec2(33, 28);
 ImVec2 Config::effectBarIconSize = ImVec2(56, 48);
-int Config::bestEffects = 2;
+int Config::bestEffects = 3;
+int Config::statBarSpacing = 0;
 float Config::opacity;
 bool Config::debug = false;
+bool Config::dragOverlay = false;
+bool Config::configUpdated = false;
 
 bool Config::CheckConfig(const std::string& configFilePath) {
     try {
@@ -39,13 +42,28 @@ bool Config::CheckConfig(const std::string& configFilePath) {
             updated = true;
         }
 
+        if (!configJson.contains("dragOverlay")) {
+            configJson["dragOverlay"] = false;
+            updated = true;
+        }
+
         if (!configJson.contains("opacity")) {
             configJson["opacity"] = 1.0f;
             updated = true;
         }
 
         if (!configJson.contains("bestEffects")) {
-            configJson["bestEffects"] = 2;
+            configJson["bestEffects"] = 3;
+            updated = true;
+        }
+
+        if (!configJson.contains("statBarSpacing")) {
+            configJson["statBarSpacing"] = 0;
+            updated = true;
+        }
+
+        if (!configJson.contains("bestEffectIconSize")) {
+            configJson["bestEffectIconSize"] = 33;
             updated = true;
         }
 
@@ -88,28 +106,6 @@ bool Config::CheckConfig(const std::string& configFilePath) {
             }
         }
 
-        if (!configJson.contains("effectBar")) {
-            configJson["effectBar"] = {
-                    {"position", {{"x", gGameWindowSize.width - 555 - 3}, {"y", 10}}},
-                    {"size", {{"width", 555}, {"height", 40}}},
-                    {"hideText", false}
-            };
-            updated = true;
-        } else {
-            if (!configJson["effectBar"].contains("position")) {
-                configJson["effectBar"]["position"] = {{"x", gGameWindowSize.width - 555 - 3}, {"y", 10}};
-                updated = true;
-            }
-            if (!configJson["effectBar"].contains("size")) {
-                configJson["effectBar"]["size"] = {{"width", 555}, {"height", 40}};
-                updated = true;
-            }
-            if (!configJson["effectBar"].contains("hideText")) {
-                configJson["effectBar"]["hideText"] = false;
-                updated = true;
-            }
-        }
-
         if (updated) {
             Logger::Info("Config file was missing fields. Updating...");
             std::ofstream outFile(configFilePath);
@@ -128,6 +124,44 @@ bool Config::CheckConfig(const std::string& configFilePath) {
     }
 }
 
+void Config::SaveConfig(const std::string& configFilePath) {
+    std::ofstream configFile(configFilePath);
+    if (!configFile.is_open()) {
+        Logger::Error("Failed to open sv_config.json for writing.");
+        return;
+    }
+    nlohmann::json configJson;
+
+    configJson["debug"] = debug;
+    configJson["dragOverlay"] = dragOverlay;
+    configJson["opacity"] = opacity;
+    configJson["bestEffects"] = bestEffects;
+
+    configJson["barVisibility"] = {
+        {"hp", barVisibility.hp},
+        {"fp", barVisibility.fp},
+        {"stamina", barVisibility.stamina},
+        {"stagger", barVisibility.stagger},
+        {"poison", barVisibility.poison},
+        {"scarletRot", barVisibility.scarletRot},
+        {"hemorrhage", barVisibility.hemorrhage},
+        {"deathBlight", barVisibility.deathBlight},
+        {"frostbite", barVisibility.frostbite},
+        {"sleep", barVisibility.sleep},
+        {"madness", barVisibility.madness}
+    };
+
+    configJson["statBar"]["position"]["x"] = statBarSettings.position.x;
+    configJson["statBar"]["position"]["y"] = statBarSettings.position.y;
+    configJson["statBar"]["size"]["width"] = statBarSettings.size.x;
+    configJson["statBar"]["size"]["height"] = statBarSettings.size.y;
+    configJson["statBar"]["hideText"] = statBarSettings.hideText;
+
+
+    configFile << configJson.dump(4);
+    configFile.close();
+}
+
 void Config::LoadConfig(const std::string& configFilePath) {
     if (!CheckConfig(configFilePath)) {
         Logger::Warning("Failed to validate config file.");
@@ -143,9 +177,13 @@ void Config::LoadConfig(const std::string& configFilePath) {
         nlohmann::json configJson;
         configFile >> configJson;
 
-        Config::debug = configJson["debug"];
+        debug = configJson["debug"];
+        dragOverlay = configJson["dragOverlay"];
         opacity = configJson["opacity"];
         bestEffects = configJson["bestEffects"];
+        bestEffectIconSize.x = configJson["bestEffectIconSize"];
+        bestEffectIconSize.y = bestEffectIconSize.x * 0.85f;
+        statBarSpacing = configJson["statBarSpacing"];
 
         barVisibility.hp = configJson["barVisibility"]["hp"];
         barVisibility.fp = configJson["barVisibility"]["fp"];
@@ -163,11 +201,7 @@ void Config::LoadConfig(const std::string& configFilePath) {
         statBarSettings.size = ImVec2(configJson["statBar"]["size"]["width"], configJson["statBar"]["size"]["height"]);
         statBarSettings.hideText = configJson["statBar"]["hideText"];
 
-        effectBarSettings.position = ImVec2(configJson["effectBar"]["position"]["x"], configJson["effectBar"]["position"]["y"]);
-        effectBarSettings.size = ImVec2(configJson["effectBar"]["size"]["width"], configJson["effectBar"]["size"]["height"]);
-        effectBarSettings.hideText = configJson["effectBar"]["hideText"];
-
-        float iconWidth = effectBarSettings.size.y * 1.70f;
+        float iconWidth = statBarSettings.size.y * 1.70f;
         effectBarIconSize = ImVec2(iconWidth, iconWidth * 0.85f);
 
     } catch (const std::exception& e) {
@@ -184,8 +218,11 @@ void Config::CreateConfig(const std::string &configFilePath) {
         nlohmann::json configJson;
 
         configJson["debug"] = false;
+        configJson["dragOverlay"] = false;
         configJson["opacity"] = 0.9f;
-        configJson["bestEffects"] = 2;
+        configJson["bestEffects"] = 3;
+        configJson["bestEffectIconSize"] = 33;
+        configJson["statBarSpacing"] = 0;
 
         configJson["barVisibility"] = {
             {"hp", true},

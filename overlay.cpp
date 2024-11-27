@@ -12,7 +12,6 @@
 #include "logger.h"
 #include "stb_image.h"
 #include "config.h"
-#include "structs/world_chr_man_imp.h"
 #include "util.h"
 
 #include <string>
@@ -24,8 +23,6 @@
 #include <iostream>
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-using namespace structs;
 
 namespace souls_vision {
 
@@ -43,8 +40,8 @@ uint64_t Overlay::buffersCounts_ = 0;
 int Overlay::textureCount_;
 std::unordered_map<std::string, TextureInfo> Overlay::textureMap_;
 
-BarRenderer* Overlay::barRenderer_ = nullptr;
-EffectBarRenderer* Overlay::effectBarRenderer_ = nullptr;
+std::vector<StatBar> Overlay::statBars_;
+std::vector<EffectBar> Overlay::effectBars_;
 std::vector<BarToRender> Overlay::barsToRender_;
 std::vector<BarToRender> Overlay::effectBarsToRender_;
 
@@ -116,12 +113,8 @@ void Overlay::Uninitialize() {
 
     CleanupRenderTargets();
 
-    delete barRenderer_;
-    barRenderer_ = nullptr;
-
-    delete effectBarRenderer_;
-    effectBarRenderer_ = nullptr;
-
+    statBars_.clear();
+    effectBars_.clear();
     barsToRender_.clear();
     effectBarsToRender_.clear();
 
@@ -256,22 +249,41 @@ void Overlay::InitializeRenderTargers(IDXGISwapChain3 *pSwapChain) {
     device->Release();
 }
 
-void Overlay::InitializeBars(ID3D12Device *device) {
-    if (barRenderer_ || effectBarRenderer_) {
-        return;
-    }
-
+void Overlay::InitializeBars(ID3D12Device* device) {
     const SIZE_T descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    barRenderer_ = new BarRenderer(device, srvHeap_->GetGPUDescriptorHandleForHeapStart(), descriptorSize);
-    effectBarRenderer_ = new EffectBarRenderer(device, srvHeap_->GetGPUDescriptorHandleForHeapStart(), descriptorSize);
+    if (statBars_.empty()) {
+        StatBar hpBar(BarType::HP, "Red.png", descriptorSize, srvHeap_->GetGPUDescriptorHandleForHeapStart());
+        StatBar fpBar(BarType::FP, "Blue.png", descriptorSize, srvHeap_->GetGPUDescriptorHandleForHeapStart());
+        StatBar staminaBar(BarType::Stamina, "Green.png", descriptorSize, srvHeap_->GetGPUDescriptorHandleForHeapStart());
+        StatBar staggerBar(BarType::Stagger, "Yellow.png", descriptorSize, srvHeap_->GetGPUDescriptorHandleForHeapStart());
+
+        statBars_.push_back(hpBar);
+        statBars_.push_back(fpBar);
+        statBars_.push_back(staminaBar);
+        statBars_.push_back(staggerBar);
+    }
+
+    if (effectBars_.empty()) {
+        EffectBar poisonBar(BarType::Poison, "Poison.png", GetColor0To1(100, 113, 0, 255), descriptorSize, srvHeap_->GetGPUDescriptorHandleForHeapStart());
+        EffectBar scarletRotBar(BarType::ScarletRot, "ScarletRot.png", GetColor0To1(117, 38, 1, 255), descriptorSize, srvHeap_->GetGPUDescriptorHandleForHeapStart());
+        EffectBar hemorrhageBar(BarType::Hemorrhage, "Hemorrhage.png", GetColor0To1(95, 11, 11, 255), descriptorSize, srvHeap_->GetGPUDescriptorHandleForHeapStart());
+        EffectBar deathBlightBar(BarType::DeathBlight, "DeathBlight.png", GetColor0To1(57, 53, 50, 255), descriptorSize, srvHeap_->GetGPUDescriptorHandleForHeapStart());
+        EffectBar frostbiteBar(BarType::Frostbite, "Frostbite.png", GetColor0To1(48, 95, 133, 255), descriptorSize, srvHeap_->GetGPUDescriptorHandleForHeapStart());
+        EffectBar sleepBar(BarType::Sleep, "Sleep.png", GetColor0To1(77, 80, 114, 255), descriptorSize, srvHeap_->GetGPUDescriptorHandleForHeapStart());
+        EffectBar madnessBar(BarType::Madness, "Madness.png", GetColor0To1(131, 85, 0, 255), descriptorSize, srvHeap_->GetGPUDescriptorHandleForHeapStart());
+
+        effectBars_.push_back(poisonBar);
+        effectBars_.push_back(scarletRotBar);
+        effectBars_.push_back(hemorrhageBar);
+        effectBars_.push_back(deathBlightBar);
+        effectBars_.push_back(frostbiteBar);
+        effectBars_.push_back(sleepBar);
+        effectBars_.push_back(madnessBar);
+    }
 }
 
-void Overlay::Draw(ID3D12Device* device) {
-    ImGui_ImplDX12_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
-
+void Overlay::DrawStatBars(ID3D12Device* device) {
     ChrIns* localPlayer = GameHandler::GetLocalPlayer();
     if (!localPlayer || localPlayer->targetHandle == -1) {
         return;
@@ -282,237 +294,136 @@ void Overlay::Draw(ID3D12Device* device) {
         return;
     }
 
-    ImDrawList* drawList = ImGui::GetForegroundDrawList();
-
-    barsToRender_.clear();
-    effectBarsToRender_.clear();
-
-    if (!barRenderer_ || !effectBarRenderer_) {
-        Logger::Error("Bar renderers not initialized.");
-        return;
-    }
-
-    std::vector<BarConfig> statBars = {
-        {
-            BarType::HP,
-            static_cast<float>(targetChrIns->moduleBag->statModule->hp),
-            static_cast<float>(targetChrIns->moduleBag->statModule->maxHp),
-            "Red.png",
-            IM_COL32(255, 0, 0, 255), // although I'm passing a color here, this value is not used in the current implementation
-            0,
-            false,
-            Config::barVisibility.hp
-        },
-        {
-            BarType::FP,
-            static_cast<float>(targetChrIns->moduleBag->statModule->fp),
-            static_cast<float>(targetChrIns->moduleBag->statModule->maxFp),
-            "Blue.png",
-            IM_COL32(0, 0, 255, 255), // although I'm passing a color here, this value is not used in the current implementation
-            0,
-            false,
-            Config::barVisibility.fp
-        },
-        {
-            BarType::Stamina,
-            static_cast<float>(targetChrIns->moduleBag->statModule->stamina),
-            static_cast<float>(targetChrIns->moduleBag->statModule->maxStamina),
-            "Green.png",
-            IM_COL32(0, 255, 0, 255), // although I'm passing a color here, this value is not used in the current implementation
-            0,
-            false,
-            targetChrIns->chrType != 5 && Config::barVisibility.stamina
-        },
-        {
-            BarType::Stagger,
-            targetChrIns->moduleBag->superArmorModule->stagger,
-            targetChrIns->moduleBag->superArmorModule->maxStagger,
-            "Yellow.png",
-            IM_COL32(255, 255, 0, 255), // although I'm passing a color here, this value is not used in the current implementation
-            2,
-            false,
-            Config::barVisibility.stagger
-        }
-    };
-
-    std::vector<BarConfig> effectBars = {
-        {
-            BarType::Poison,
-            static_cast<float>(targetChrIns->moduleBag->resistModule->poisonResist),
-            static_cast<float>(targetChrIns->moduleBag->resistModule->maxPoisonResist),
-            "Poison.png",
-            IM_COL32(100, 113, 0, 255),
-            0,
-            true,
-            Config::barVisibility.poison
-        },
-        {
-            BarType::ScarletRot,
-            static_cast<float>(targetChrIns->moduleBag->resistModule->scarletRotResist),
-            static_cast<float>(targetChrIns->moduleBag->resistModule->maxScarletRotResist),
-            "ScarletRot.png",
-            IM_COL32(117, 38, 1, 255),
-            0,
-            true,
-            Config::barVisibility.scarletRot
-        },
-        {
-            BarType::Hemorrhage,
-            static_cast<float>(targetChrIns->moduleBag->resistModule->hemorrhageResist),
-            static_cast<float>(targetChrIns->moduleBag->resistModule->maxHemorrhageResist),
-            "Hemorrhage.png",
-            IM_COL32(95, 11, 11, 255),
-            0,
-            true,
-            Config::barVisibility.hemorrhage
-        },
-        {
-            BarType::DeathBlight,
-            static_cast<float>(targetChrIns->moduleBag->resistModule->deathBlightResist),
-            static_cast<float>(targetChrIns->moduleBag->resistModule->maxDeathBlightResist),
-            "DeathBlight.png",
-            IM_COL32(57, 53, 50, 255),
-            0,
-            true,
-            Config::barVisibility.deathBlight
-        },
-        {
-            BarType::Frostbite,
-            static_cast<float>(targetChrIns->moduleBag->resistModule->frostbiteResist),
-            static_cast<float>(targetChrIns->moduleBag->resistModule->maxFrostbiteResist),
-            "Frostbite.png",
-            IM_COL32(48, 95, 133, 255),
-            0,
-            true,
-            Config::barVisibility.frostbite
-        },
-        {
-            BarType::Sleep,
-            static_cast<float>(targetChrIns->moduleBag->resistModule->sleepResist),
-            static_cast<float>(targetChrIns->moduleBag->resistModule->maxSleepResist),
-            "Sleep.png",
-            IM_COL32(77, 80, 114, 255),
-            0,
-            true,
-            Config::barVisibility.sleep
-        },
-        {
-            BarType::Madness,
-            static_cast<float>(targetChrIns->moduleBag->resistModule->madnessResist),
-            static_cast<float>(targetChrIns->moduleBag->resistModule->maxMadnessResist),
-            "Madness.png",
-            IM_COL32(131, 85, 0, 255),
-            0,
-            true,
-            Config::barVisibility.madness
-        }
-    };
-
-    // get the strongest effect against this enemy
     std::vector<std::tuple<BarType, int>> strongestEffects;
-    std::transform(effectBars.begin(), effectBars.end(), std::back_inserter(strongestEffects), [](const BarConfig& bar) {
-        return std::make_tuple(bar.type, (int)bar.maxValue);
+    std::transform(effectBars_.begin(), effectBars_.end(), std::back_inserter(strongestEffects), [&targetChrIns](const EffectBar& bar) {
+        float maxValue = GetTargetMaxValue(bar.type, targetChrIns);
+        return std::make_tuple(bar.type, (int)maxValue);
     });
     std::sort(strongestEffects.begin(), strongestEffects.end(), [](const auto& a, const auto& b) {
         return std::get<1>(a) < std::get<1>(b);
     });
 
-    for (const auto& barConfig : statBars) {
-        if (!barConfig.condition) {
+    std::vector<std::tuple<StatBar, BarSettings, int>> statBarsToRender = {};
+    for (auto bar : statBars_) {
+        bool show = GetBarVisibility(bar.type);
+        if (!show) {
             continue;
         }
-        AddStatBar(barConfig);
-    }
 
-    for (const auto& barConfig : effectBars) {
-        if (!barConfig.condition || barConfig.currentValue <= 0.0f) {
+        BarSettings settings = Config::statBarSettings;
+        settings.currentValue = GetTargetValue(bar.type, targetChrIns);
+        settings.maxValue = GetTargetMaxValue(bar.type, targetChrIns);
+        int decimals = bar.type == BarType::Stagger ? 2 : 0;
+        if (settings.maxValue <= 0) {
             continue;
         }
-        AddEffectBar(barConfig);
+
+        statBarsToRender.emplace_back(bar, settings, decimals);
     }
 
-    // Render Stat Bars
-    for (size_t i = 0; i < barsToRender_.size(); ++i) {
-        BarToRender& bar = barsToRender_[i];
-        bar.settings.position.y += static_cast<float>(i) * (Config::statBarSettings.size.y - 10);
-        barRenderer_->Render(drawList, bar.settings, bar.textureInfo, bar.decimals);
+    std::vector<std::tuple<EffectBar, BarSettings, int>> effectBarsToRender = {};
+    for (auto bar : effectBars_) {
+        bool show = GetBarVisibility(bar.type);
+        if (!show) {
+            continue;
+        }
+
+        BarSettings settings = Config::statBarSettings;
+        settings.maxValue = GetTargetMaxValue(bar.type, targetChrIns);
+        settings.currentValue = settings.maxValue - GetTargetValue(bar.type, targetChrIns);
+        int decimals = 0;
+        if (settings.maxValue <= 0 || settings.currentValue <= 0) {
+            continue;
+        }
+
+        effectBarsToRender.emplace_back(bar, settings, decimals);
     }
 
-    float paddingY = (Config::statBarSettings.size.y - 10) * static_cast<float>(barsToRender_.size()) + 10.0f;
-    int shownIndex = 0;
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar;
 
-    // Render the best N effect bars against the enemy
-    ImVec2 iconSize = Config::effectBarIconSize;
-    iconSize.x *= 0.6f;
-    iconSize.y *= 0.6f;
+    if (!Config::dragOverlay) {
+        windowFlags |= ImGuiWindowFlags_NoDecoration
+                       | ImGuiWindowFlags_NoBackground
+                       | ImGuiWindowFlags_NoInputs;
+    } else {
+        windowFlags |= ImGuiWindowFlags_NoResize;
+    }
+
+    float statBarsheight = ((Config::statBarSettings.size.y - 10.0f + Config::statBarSpacing) * statBarsToRender.size() + (10.0f + Config::statBarSpacing));
+    float bestEffectHeight = 0;
+    if (Config::bestEffects > 0) {
+        bestEffectHeight = Config::bestEffectIconSize.y - 5.0f + (Config::statBarSpacing * 0.5f);
+    }
+    float effectBarsHeight = (Config::effectBarIconSize.y + Config::statBarSpacing) * effectBarsToRender.size();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); // Remove o padding
+    ImVec2 windowSize = ImVec2(
+            Config::statBarSettings.size.x,
+            statBarsheight + bestEffectHeight + effectBarsHeight
+    );
+    ImGui::SetNextWindowPos(Config::statBarSettings.position, ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y));
+
+    static ImVec2 previousPosition = Config::statBarSettings.position;
+
+    if (!ImGui::Begin("Stat Window", nullptr, windowFlags)) {
+        return;
+    }
+    if (Config::configUpdated) {
+        ImGui::SetWindowPos(Config::statBarSettings.position);
+        previousPosition = Config::statBarSettings.position;
+        Config::configUpdated = false;
+    }
+
+    ImVec2 currentPosition = ImGui::GetWindowPos();
+
+    if (Config::dragOverlay && (currentPosition.x != previousPosition.x || currentPosition.y != previousPosition.y)) {
+        Config::statBarSettings.position = currentPosition;
+        previousPosition = currentPosition;
+        Config::SaveConfig(gConfigFilePath);
+    }
+
+    for (int i = 0; i < statBarsToRender.size(); i++) {
+        auto [bar, settings, decimals] = statBarsToRender[i];
+        float paddingY = static_cast<float>(i) * (settings.size.y - 10.0f + Config::statBarSpacing);
+
+        bar.Render(settings, paddingY, decimals);
+    }
+
+    float paddingY = statBarsheight;
+
     for (int i = 0; i < Config::bestEffects && i < strongestEffects.size(); i++) {
-        auto [barType, maxValue] = strongestEffects[i];
-        TextureInfo effectIcon = GetTexture(GetTextureNameForType(barType));
-        if (!effectIcon.textureResource) {
+        auto [type, value] = strongestEffects[i];
+        TextureInfo effectTexture = GetTexture(GetTextureNameForType(type));
+        if (!effectTexture.textureResource) {
             continue;
         }
 
-        D3D12_GPU_DESCRIPTOR_HANDLE effectIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), effectIcon.index);
+        D3D12_GPU_DESCRIPTOR_HANDLE effectIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), effectTexture.index);
         auto effectIconTexID = static_cast<ImTextureID>(effectIconHandle.ptr);
 
-        int additionalPadding = i == 0 ? 5 : 0;
+        ImVec2 iconSize = Config::bestEffectIconSize;
         ImVec2 iconPosition = ImVec2(
-            Config::statBarSettings.position.x + (iconSize.x * (float)i) + additionalPadding,
-            paddingY + 5.0f
+            Config::bestEffectIconSize.x * i + 5.0f,
+            paddingY - 5.0f + (Config::statBarSpacing * 0.5f)
         );
-
-        drawList->AddImage(effectIconTexID, iconPosition, ImVec2(iconPosition.x + iconSize.x, iconPosition.y + iconSize.y));
+        ImGui::SetCursorPos(iconPosition);
+        ImGui::Image(effectIconTexID, iconSize);
     }
 
     if (!strongestEffects.empty() || Config::bestEffects != 0) {
-        paddingY += iconSize.y;
+        paddingY += bestEffectHeight + Config::statBarSpacing;
     }
 
-    // Render Effect Bars
-    for (const auto& effectBar : effectBarsToRender_) {
-        BarSettings adjustedSettings = effectBar.settings;
-        adjustedSettings.position.y += (static_cast<float>(shownIndex) * (Config::effectBarIconSize.y)) + paddingY;
-        shownIndex++;
+    for (int i = 0; i < effectBarsToRender.size(); i++) {
+        auto [bar, settings, decimals] = effectBarsToRender[i];
+        float innerPaddingY = paddingY + static_cast<float>(i) * (Config::effectBarIconSize.y + Config::statBarSpacing);
 
-        effectBarRenderer_->Render(drawList, adjustedSettings, effectBar.textureInfo, effectBar.barColor, effectBar.decimals);
+        bar.Render(settings, innerPaddingY, decimals);
     }
 
-    ImGui::EndFrame();
-}
+    ImGui::End();
 
-void Overlay::AddStatBar(BarConfig barConfig) {
-    BarToRender bar;
-    bar.settings = Config::statBarSettings;
-    bar.settings.currentValue = barConfig.currentValue;
-    bar.settings.maxValue = barConfig.maxValue;
-    bar.settings.textureName = barConfig.textureName;
-    bar.textureInfo = GetTexture(barConfig.textureName);
-    bar.decimals = barConfig.decimals;
-    bar.config = barConfig;
-
-    if (bar.settings.maxValue <= 0.0f) { // Don't render bars with invalid maxValue
-        return;
-    }
-
-    barsToRender_.push_back(bar);
-}
-
-void Overlay::AddEffectBar(BarConfig barConfig) {
-    BarToRender effectBar;
-    effectBar.settings = Config::effectBarSettings;
-    effectBar.settings.currentValue = barConfig.maxValue - barConfig.currentValue;
-    effectBar.settings.maxValue = barConfig.maxValue;
-    effectBar.settings.textureName = barConfig.textureName;
-    effectBar.textureInfo = GetTexture(barConfig.textureName);
-    effectBar.barColor = barConfig.barColor;
-    effectBar.decimals = barConfig.decimals;
-    effectBar.config = barConfig;
-
-    if (effectBar.settings.currentValue <= 0.0f) { // Don't render effect bars with 0 value
-        return;
-    }
-
-    effectBarsToRender_.push_back(effectBar);
+    ImGui::PopStyleVar();
 }
 
 void Overlay::RenderTargets(IDXGISwapChain3 *pSwapChain) {
@@ -565,7 +476,13 @@ void Overlay::Render(IDXGISwapChain3 *pSwapChain) {
 
     InitializeBars(device);
 
-    Draw(device);
+    ImGui_ImplDX12_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+
+    DrawStatBars(device);
+
+    ImGui::EndFrame();
 
     RenderTargets(pSwapChain);
 }
@@ -845,6 +762,96 @@ LRESULT WINAPI Overlay::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
 
     return CallWindowProcW(reinterpret_cast<WNDPROC>(oWndProc_), hWnd, uMsg, wParam, lParam);
+}
+
+float Overlay::GetTargetValue(BarType type, ChrIns *targetChrIns) {
+    if (!targetChrIns) {
+        return 0;
+    }
+
+    if (type == BarType::HP) {
+        return targetChrIns->moduleBag->statModule->hp;
+    } else if (type == BarType::FP) {
+        return targetChrIns->moduleBag->statModule->fp;
+    } else if (type == BarType::Stamina) {
+        return targetChrIns->moduleBag->statModule->stamina;
+    } else if (type == BarType::Stagger) {
+        return targetChrIns->moduleBag->superArmorModule->stagger;
+    } else if (type == BarType::Poison) {
+        return targetChrIns->moduleBag->resistModule->poisonResist;
+    } else if (type == BarType::ScarletRot) {
+        return targetChrIns->moduleBag->resistModule->scarletRotResist;
+    } else if (type == BarType::Hemorrhage) {
+        return targetChrIns->moduleBag->resistModule->hemorrhageResist;
+    } else if (type == BarType::DeathBlight) {
+        return targetChrIns->moduleBag->resistModule->deathBlightResist;
+    } else if (type == BarType::Frostbite) {
+        return targetChrIns->moduleBag->resistModule->frostbiteResist;
+    } else if (type == BarType::Sleep) {
+        return targetChrIns->moduleBag->resistModule->sleepResist;
+    } else if (type == BarType::Madness) {
+        return targetChrIns->moduleBag->resistModule->madnessResist;
+    }
+}
+
+float Overlay::GetTargetMaxValue(BarType type, ChrIns *targetChrIns) {
+    if (!targetChrIns) {
+        return 0;
+    }
+
+    if (type == BarType::HP) {
+        return targetChrIns->moduleBag->statModule->maxHp;
+    } else if (type == BarType::FP) {
+        return targetChrIns->moduleBag->statModule->maxFp;
+    } else if (type == BarType::Stamina) {
+        return targetChrIns->moduleBag->statModule->maxStamina;
+    } else if (type == BarType::Stagger) {
+        return targetChrIns->moduleBag->superArmorModule->maxStagger;
+    } else if (type == BarType::Poison) {
+        return targetChrIns->moduleBag->resistModule->maxPoisonResist;
+    } else if (type == BarType::ScarletRot) {
+        return targetChrIns->moduleBag->resistModule->maxScarletRotResist;
+    } else if (type == BarType::Hemorrhage) {
+        return targetChrIns->moduleBag->resistModule->maxHemorrhageResist;
+    } else if (type == BarType::DeathBlight) {
+        return targetChrIns->moduleBag->resistModule->maxDeathBlightResist;
+    } else if (type == BarType::Frostbite) {
+        return targetChrIns->moduleBag->resistModule->maxFrostbiteResist;
+    } else if (type == BarType::Sleep) {
+        return targetChrIns->moduleBag->resistModule->maxSleepResist;
+    } else if (type == BarType::Madness) {
+        return targetChrIns->moduleBag->resistModule->maxMadnessResist;
+    }
+}
+
+bool Overlay::GetBarVisibility(BarType type) {
+    if (type == BarType::HP) {
+        return Config::barVisibility.hp;
+    } else if (type == BarType::FP) {
+        return Config::barVisibility.fp;
+    } else if (type == BarType::Stamina) {
+        return Config::barVisibility.stamina;
+    } else if (type == BarType::Stagger) {
+        return Config::barVisibility.stagger;
+    } else if (type == BarType::Poison) {
+        return Config::barVisibility.poison;
+    } else if (type == BarType::ScarletRot) {
+        return Config::barVisibility.scarletRot;
+    } else if (type == BarType::Hemorrhage) {
+        return Config::barVisibility.hemorrhage;
+    } else if (type == BarType::DeathBlight) {
+        return Config::barVisibility.deathBlight;
+    } else if (type == BarType::Frostbite) {
+        return Config::barVisibility.frostbite;
+    } else if (type == BarType::Sleep) {
+        return Config::barVisibility.sleep;
+    } else if (type == BarType::Madness) {
+        return Config::barVisibility.madness;
+    }
+}
+
+ImVec4 Overlay::GetColor0To1(int r, int g, int b, int a) {
+    return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 }
 
 } // souls_vision

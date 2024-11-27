@@ -12,9 +12,12 @@
 #include <unordered_map>
 #include <filesystem>
 #include <wrl/client.h>
-#include "bar_renderer.h"
-#include "effect_bar_renderer.h"
 #include "shared_types.h"
+#include "stat_bar.h"
+#include "structs/world_chr_man_imp.h"
+#include "effect_bar.h"
+
+using namespace structs;
 
 namespace souls_vision {
 
@@ -32,7 +35,7 @@ private:
     static void InitializeDXResources(IDXGISwapChain3* pSwapChain);
     static void InitializeRenderTargers(IDXGISwapChain3* pSwapChain);
     static void InitializeBars(ID3D12Device* device);
-    static void Draw(ID3D12Device* device);
+    static void DrawStatBars(ID3D12Device* device);
     static void RenderTargets(IDXGISwapChain3 *pSwapChain);
     static inline int GetCorrectDXGIFormat(int eCurrentFormat);
     static void LoadAllTextures(ID3D12Device* device);
@@ -40,8 +43,10 @@ private:
     static bool LoadTextureFromMemory(const void* data, size_t data_size, ID3D12Device* d3d_device, D3D12_CPU_DESCRIPTOR_HANDLE srv_cpu_handle, TextureInfo* textureInfo, float opacity = 1.0f);
     static int GetTextureCount();
     static std::string GetTextureNameForType(BarType type);
-    static void AddStatBar(BarConfig barConfig);
-    static void AddEffectBar(BarConfig barConfig);
+    static float GetTargetValue(BarType type, ChrIns* targetChrIns);
+    static float GetTargetMaxValue(BarType type, ChrIns* targetChrIns);
+    static bool GetBarVisibility(BarType type);
+    static ImVec4 GetColor0To1(int r, int g, int b, int a);
 
     static LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -57,8 +62,8 @@ private:
     static int textureCount_;
     static std::unordered_map<std::string, TextureInfo> textureMap_;
 
-    static BarRenderer* barRenderer_;
-    static EffectBarRenderer* effectBarRenderer_;
+    static std::vector<StatBar> statBars_;
+    static std::vector<EffectBar> effectBars_;
     static std::vector<BarToRender> barsToRender_;
     static std::vector<BarToRender> effectBarsToRender_;
 };

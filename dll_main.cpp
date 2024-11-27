@@ -23,6 +23,7 @@ DWORD WINAPI Setup(LPVOID lpParam) {
     auto hModule = static_cast<HMODULE>(lpParam);
 
     gDllPath = GetDllDirectory(hModule);
+    gConfigFilePath = gDllPath + "\\sv_config.json";
 
     std::string logFilePath = gDllPath + "\\souls_vision.log";
     Logger::Initialize(logFilePath);
@@ -34,8 +35,7 @@ DWORD WINAPI Setup(LPVOID lpParam) {
     }
     gGameWindowSize = GetWindowSize(gGameWindow);
 
-    std::string configPath = gDllPath + "\\sv_config.json";
-    Config::LoadConfig(configPath);
+    Config::LoadConfig(gConfigFilePath);
     if (Config::debug) {
         Logger::InitializeDebug();
     }
@@ -79,6 +79,7 @@ void MainThread() {
 
                 Logger::Info("Config file updated. Reloading...");
                 Config::LoadConfig(configPath);
+                Config::configUpdated = true;
             }
         } catch (const std::exception& e) {
             Logger::Error(std::string("Error checking config file: ") + e.what());

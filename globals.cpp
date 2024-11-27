@@ -6,6 +6,7 @@ const wchar_t* gWindowClass = L"ELDEN RING\u2122";
 HWND gGameWindow = nullptr;
 Size gGameWindowSize;
 std::string gDllPath;
+std::string gConfigFilePath;
 std::atomic_bool gRunning = false;
 
 }

@@ -7,9 +7,12 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
 The first time the game opens with the mod it will generate a default sv_config.json placing the bars at the top-right of the screen. Every time the config file is edited, it will be reloaded automatically.
 
 ### Fields
+* **`dragOverlay`**: *bool* - If set to `true`, the overlay can be dragged around the screen by clicking and dragging it.
 * **`debug`**: *bool* - Enables or disables debug mode. If set to `true`, a console window will open with the game, showing the same information as the one found in the `souls_vision.log`.
 * **`opacity`**: *float* - Opacity of the overlay, from 0.0 (fully transparent) to 1.0 (fully opaque). This option requires the game to be restarted to take effect.
 * **`bestEffects`**: *int* - How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `2`.
+* **`bestEffectIconSize`**: *int* - Size of the best effect icons. Default is `33`.
+* **`statBarSpacing`**: *int* - Spacing between the bars, the space used around the "bestEffect" will be half of this. Default is `0`.
 * **`statBar`** | **`effectBar`**: *object* - Configuration for the bars, `statBar` for the HP, FP, Stamina, Poise and `effectBar` for the Buildup bars.
     * **`position`**: *object* - Determines the bar’s on-screen position from top-left to bottom-right.
         * **`x`**: *int* - Horizontal position of the bar in pixels.
@@ -39,6 +42,13 @@ Souls Vision was developed and tested on version 1.16, it is expected to work wi
 Add the `SoulsVision.dll` and `sv_assets` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.2.0] - 27-11-2024**
+  * Added a config parameter to customize the vertical space between the bars
+  * Added a config parameter to customize the size of the "best effect" icon
+  * Removed the condition that prevented the stamina bar from rendering
+  * Completely reworked the way the bars are rendered to be tied to a `ImGui` window
+    * This change allows the overlay to be dragged around the screen
+    * This "drag" mode can be toggled on the config file
 * **[v0.1.5] - 25-11-2024**
   * Added icons to show best effects to use against the targeted enemy
 * **[v0.1.4] - 25-11-2024**

@@ -26,8 +26,6 @@ add_library(souls_vision SHARED
         logger.h
         config.cpp
         config.h
-        bar_renderer.cpp
-        bar_renderer.h
         structs/world_chr_man_imp.cpp
         structs/world_chr_man_imp.h
         structs/chr_ins.cpp
@@ -42,12 +40,14 @@ add_library(souls_vision SHARED
         structs/chr_resist_module.h
         structs/chr_super_armor_module.cpp
         structs/chr_super_armor_module.h
-        effect_bar_renderer.cpp
-        effect_bar_renderer.h
         shared_types.cpp
         shared_types.h
         util.cpp
         util.h
+        stat_bar.cpp
+        stat_bar.h
+        effect_bar.cpp
+        effect_bar.h
 )
 
 target_link_libraries(souls_vision PRIVATE d3d12 dxgi dxguid)

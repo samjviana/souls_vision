@@ -10,7 +10,7 @@
 #include <nlohmann/json.hpp>
 #include <imgui.h>
 #include "logger.h"
-#include "bar_renderer.h"
+#include "shared_types.h"
 
 namespace souls_vision {
 
@@ -18,13 +18,17 @@ class Config {
 public:
     static BarVisibility barVisibility;
     static BarSettings statBarSettings;
-    static BarSettings effectBarSettings;
+    static ImVec2 bestEffectIconSize;
     static ImVec2 effectBarIconSize;
+    static int statBarSpacing;
     static int bestEffects;
     static float opacity;
     static bool debug;
+    static bool dragOverlay;
+    static bool configUpdated;
 
     static bool CheckConfig(const std::string& configFilePath);
+    static void SaveConfig(const std::string& configFilePath);
     static void LoadConfig(const std::string& configFilePath);
 
 private:
