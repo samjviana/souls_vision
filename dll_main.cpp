@@ -21,6 +21,7 @@ Size GetWindowSize(HWND hwnd = nullptr);
 
 DWORD WINAPI Setup(LPVOID lpParam) {
     auto hModule = static_cast<HMODULE>(lpParam);
+    gModule = hModule;
 
     gDllPath = GetDllDirectory(hModule);
     gConfigFilePath = gDllPath + "\\sv_config.json";

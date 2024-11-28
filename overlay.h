@@ -28,6 +28,7 @@ public:
     static TextureInfo GetTexture(const std::string& textureName);
 
     static ID3D12CommandQueue* commandQueue_;
+    static ImFont* font_;
 
 private:
     static void Render(IDXGISwapChain3* pSwapChain);
@@ -47,6 +48,7 @@ private:
     static float GetTargetMaxValue(BarType type, ChrIns* targetChrIns);
     static bool GetBarVisibility(BarType type);
     static ImVec4 GetColor0To1(int r, int g, int b, int a);
+    static ImFont* LoadFont();
 
     static LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 

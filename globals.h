@@ -19,6 +19,7 @@ struct Size {
 };
 
 extern const wchar_t* gWindowClass;
+extern HMODULE gModule;
 extern HWND gGameWindow;
 extern Size gGameWindowSize;
 extern std::string gDllPath;

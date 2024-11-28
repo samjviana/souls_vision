@@ -105,6 +105,8 @@ void EffectBar::Render(const BarSettings &settings, float paddingY, int decimals
     ImGui::Image(iconTexID, iconSize);
 
     if (!settings.hideText) {
+        ImGui::PushFont(Overlay::font_);
+
         std::string text = std::format("{:.{}f} / {:.{}f}", settings.currentValue, decimals, settings.maxValue, decimals);
         ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
         ImVec2 textPosition = ImVec2(
@@ -113,6 +115,8 @@ void EffectBar::Render(const BarSettings &settings, float paddingY, int decimals
         );
         ImGui::SetCursorPos(textPosition);
         ImGui::Text("%s", text.c_str());
+
+        ImGui::PopFont();
     }
 }
 

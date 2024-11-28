@@ -1,0 +1,3 @@
+#include "resources.h"
+
+IDR_AGMENA_W1G_FONT RCDATA "fonts/Agmena W1G.ttf"

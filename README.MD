@@ -5,6 +5,7 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
 * **Stat Bars**: Shows the current and maximum HP, FP, Stamina, and Stagger/Poise of the targeted enemy.
   * The FP bar usually only appear to "player-like" enemies
 * **Best Effects**: Shows the best effects to use against the targeted enemy, based on the lowest value necessary to trigger them.
+* **Immune Effects**: Shows the effects that the targeted enemy is immune to in gray at the right of the best effects.
 * **Buildup Bars**: Shows the current buildup of effects like Poison, Scarlet Rot, Hemorrhage, Death Blight, Frostbite, Sleep, and Madness.
   * Only appear if the enemy has some effect being applied to it.
 * **Customizable**: Highly customizable, with options to change the positions, sizes, and visibility of the bars.
@@ -55,6 +56,12 @@ Souls Vision was developed and tested on version 1.16, it is expected to work wi
 Add the `SoulsVision.dll` and `sv_assets` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.2.2] - 28-11-2024**
+  * Changed the overlay to use ER font
+* **[v0.2.1] - 28-11-2024**
+  * Added a way to load textures in grayscale
+  * Added the effects that the enemy are immune to the overlay
+  * Tweaked the size of the icons and the opacity of the bars bg
 * **[v0.2.0] - 27-11-2024**
   * Added a config parameter to customize the vertical space between the bars
   * Added a config parameter to customize the size of the "best effect" icon

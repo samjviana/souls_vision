@@ -9,7 +9,7 @@ namespace souls_vision {
 
 BarVisibility Config::barVisibility;
 BarSettings Config::statBarSettings;
-ImVec2 Config::bestEffectIconSize = ImVec2(33, 28);
+ImVec2 Config::bestEffectIconSize = ImVec2(39, 33);
 ImVec2 Config::effectBarIconSize = ImVec2(56, 48);
 int Config::bestEffects = 3;
 int Config::statBarSpacing = 0;
@@ -63,7 +63,7 @@ bool Config::CheckConfig(const std::string& configFilePath) {
         }
 
         if (!configJson.contains("bestEffectIconSize")) {
-            configJson["bestEffectIconSize"] = 33;
+            configJson["bestEffectIconSize"] = 39;
             updated = true;
         }
 
@@ -223,7 +223,7 @@ void Config::CreateConfig(const std::string &configFilePath) {
         configJson["dragOverlay"] = false;
         configJson["opacity"] = 0.9f;
         configJson["bestEffects"] = 3;
-        configJson["bestEffectIconSize"] = 33;
+        configJson["bestEffectIconSize"] = 39;
         configJson["statBarSpacing"] = 0;
 
         configJson["barVisibility"] = {

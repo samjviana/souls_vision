@@ -9,6 +9,7 @@ set(MODS_DIR "${GAME_DIR}/mods")
 set(GAME_EXE "ersc_launcher.exe")
 
 file(COPY ${CMAKE_SOURCE_DIR}/sv_assets DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_SOURCE_DIR}/fonts DESTINATION ${CMAKE_BINARY_DIR})
 
 add_library(souls_vision SHARED
         dll_main.cpp
@@ -64,6 +65,8 @@ add_library(souls_vision SHARED
         structs/param_row.h
         structs/npc_param.cpp
         structs/npc_param.h
+        resources.h
+        resources.rc
 )
 
 target_link_libraries(souls_vision PRIVATE d3d12 dxgi dxguid)
@@ -73,3 +76,5 @@ add_custom_command(TARGET souls_vision POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:souls_vision>" "${MODS_DIR}/"
         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/sv_assets" "${MODS_DIR}/sv_assets"
 )
+
+set_source_files_properties(resources.rc PROPERTIES LANGUAGE RC)

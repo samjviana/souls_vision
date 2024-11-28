@@ -3,6 +3,7 @@
 namespace souls_vision {
 
 const wchar_t* gWindowClass = L"ELDEN RING\u2122";
+HMODULE gModule = nullptr;
 HWND gGameWindow = nullptr;
 Size gGameWindowSize;
 std::string gDllPath;

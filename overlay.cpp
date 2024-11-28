@@ -14,6 +14,7 @@
 #include "config.h"
 #include "util.h"
 #include "memory.h"
+#include "resources.h"
 
 #include <string>
 #include <algorithm>
@@ -38,6 +39,7 @@ ID3D12CommandQueue* Overlay::commandQueue_ = nullptr;
 ID3D12Resource** Overlay::renderTargets_ = nullptr;
 std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> Overlay::cpuDescriptorHandles_;
 uint64_t Overlay::buffersCounts_ = 0;
+ImFont* Overlay::font_;
 
 int Overlay::textureCount_;
 std::unordered_map<std::string, TextureInfo> Overlay::textureMap_;
@@ -224,6 +226,18 @@ void Overlay::InitializeDXResources(IDXGISwapChain3 *pSwapChain) {
     oWndProc_ = SetWindowLongPtrW(souls_vision::gGameWindow, GWLP_WNDPROC, (LONG_PTR)WndProc);
 
     LoadAllTextures(device);
+
+    font_ = LoadFont();
+//    std::string fontPath = gDllPath + "\\fonts\\Agmena W1G.ttf";
+//    if (std::filesystem::exists(fontPath)) {
+//        Logger::Info("Loading font from: " + fontPath);
+//        font_ = ImGui::GetIO().Fonts->AddFontFromFileTTF(fontPath.c_str(), 16.0f);
+//        if (!font_) {
+//            Logger::Error("Failed to load font.");
+//        }
+//    } else {
+//        Logger::Error("Font file not found: " + fontPath);
+//    }
 }
 
 inline int Overlay::GetCorrectDXGIFormat(int eCurrentFormat) {
@@ -443,20 +457,6 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         BarType type = immuneEffects[i];
         TextureInfo effectTexture = GetTexture(GetTextureNameForType(type, true));
         if (!effectTexture.textureResource) {
-            // log every field of the Texture Info
-            Logger::Error("Texture not found for effect: " + GetTextureNameForType(type, true));
-            Logger::Error("Index: " + std::to_string(effectTexture.index));
-            Logger::Error("Width: " + std::to_string(effectTexture.width));
-            Logger::Error("Height: " + std::to_string(effectTexture.height));
-            Logger::Error("SRV CPU Handle: " + std::to_string(effectTexture.srvCpuHandle.ptr));
-            Logger::Error("Texture Resource: " + std::to_string(reinterpret_cast<uintptr_t>(effectTexture.textureResource)));
-            TextureInfo _effectTexture = GetTexture(GetTextureNameForType(type));
-            Logger::Error("Texture not found for effect: " + GetTextureNameForType(type));
-            Logger::Error("Index: " + std::to_string(_effectTexture.index));
-            Logger::Error("Width: " + std::to_string(_effectTexture.width));
-            Logger::Error("Height: " + std::to_string(_effectTexture.height));
-            Logger::Error("SRV CPU Handle: " + std::to_string(_effectTexture.srvCpuHandle.ptr));
-            Logger::Error("Texture Resource: " + std::to_string(reinterpret_cast<uintptr_t>(_effectTexture.textureResource)));
             continue;
         }
 
@@ -465,7 +465,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
         ImVec2 iconSize = Config::bestEffectIconSize;
         ImVec2 iconPosition = ImVec2(
-            Config::statBarSettings.size.x - (i * Config::bestEffectIconSize.x) - 10.0f,
+            Config::statBarSettings.size.x - ((immuneEffects.size() - i) * Config::bestEffectIconSize.x) - 10.0f,
             paddingY - 5.0f + (Config::statBarSpacing * 0.5f)
         );
         ImGui::SetCursorPos(iconPosition);
@@ -963,6 +963,48 @@ bool Overlay::GetBarVisibility(BarType type) {
 
 ImVec4 Overlay::GetColor0To1(int r, int g, int b, int a) {
     return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+}
+
+ImFont* Overlay::LoadFont() {
+    HRSRC hResource = FindResource(gModule, MAKEINTRESOURCE(IDR_AGMENA_W1G_FONT), RT_RCDATA);
+    if (!hResource) {
+        Logger::Error(std::format("Failed to find font resource. Resource ID: {}", IDR_AGMENA_W1G_FONT));
+        return nullptr;
+    }
+
+    HGLOBAL hLoadedResource = LoadResource(gModule, hResource);
+    if (!hLoadedResource) {
+        Logger::Error("Failed to load font resource.");
+        return nullptr;
+    }
+
+    void* pFontData = LockResource(hLoadedResource);
+    if (!pFontData) {
+        Logger::Error("Failed to lock font resource.");
+        return nullptr;
+    }
+
+    DWORD fontSize = SizeofResource(gModule, hResource);
+    if (fontSize == 0) {
+        Logger::Error("Font size is zero.");
+        return nullptr;
+    }
+
+    DWORD nFonts = 0;
+    HANDLE hFont = AddFontMemResourceEx(pFontData, fontSize, NULL, &nFonts);
+    if (!hFont) {
+        Logger::Error("Failed to load font into system memory.");
+        return nullptr;
+    }
+
+    ImFont* font = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(pFontData, fontSize, 18.0f);
+    if (!font) {
+        Logger::Error("Failed to add font to ImGui.");
+        return nullptr;
+    }
+    Logger::Info("Font added to ImGui successfully.");
+
+    return font;
 }
 
 } // souls_vision
