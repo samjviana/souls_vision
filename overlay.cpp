@@ -46,6 +46,15 @@ std::vector<StatBar> Overlay::statBars_;
 std::vector<EffectBar> Overlay::effectBars_;
 std::vector<BarToRender> Overlay::barsToRender_;
 std::vector<BarToRender> Overlay::effectBarsToRender_;
+std::vector<std::string> Overlay::effectsNames = {
+        "Poison",
+        "ScarletRot",
+        "Hemorrhage",
+        "DeathBlight",
+        "Frostbite",
+        "Sleep",
+        "Madness"
+};
 
 void Overlay::Initialize() {
     HookHelper::SetRenderCallback(Render);
@@ -96,7 +105,15 @@ int Overlay::GetTextureCount() {
         if (filePath.ends_with(".png") || filePath.ends_with(".jpg")) {
             count++;
         }
+
+        for (const auto& effect : effectsNames) {
+            if (filePath.ends_with(effect + ".png") || filePath.ends_with(effect + ".jpg")) {
+                count++;
+            }
+        }
     }
+
+
 
     return count;
 }
@@ -560,6 +577,18 @@ void Overlay::LoadAllTextures(ID3D12Device* device) {
                 Logger::Info(std::format("Loaded texture: {}", fileName));
 
                 srvCpuHandle.ptr += descriptorSize;
+
+                if (std::ranges::any_of(effectsNames, [&fileName](const std::string& effect) { return fileName.ends_with(effect + ".png") || fileName.ends_with(effect + ".jpg"); })) {
+                    TextureInfo grayscaleTextureInfo = {};
+                    if (LoadTextureFromFile(filePath.c_str(), device, srvCpuHandle, &textureInfo, true)) {
+                        grayscaleTextureInfo.index = textureIndex++;
+                        fileName = fileName.substr(0, fileName.find_last_of('.')) + "GrayScale" + fileName.substr(fileName.find_last_of('.'));
+                        textureMap_[fileName] = grayscaleTextureInfo;
+                        Logger::Info(std::format("Loaded texture: {}", fileName));
+
+                        srvCpuHandle.ptr += descriptorSize;
+                    }
+                }
             } else {
                 Logger::Error("Texture " + fileName + " failed to load");
             }
@@ -567,7 +596,7 @@ void Overlay::LoadAllTextures(ID3D12Device* device) {
     }
 }
 
-bool Overlay::LoadTextureFromFile(const char* fileName, ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle, TextureInfo* textureInfo) {
+bool Overlay::LoadTextureFromFile(const char* fileName, ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle, TextureInfo* textureInfo, bool grayscale) {
     FILE* file = fopen(fileName, "rb");
     if (!file) {
         Logger::Error("Failed to open file: " + std::string(fileName));
@@ -585,25 +614,37 @@ bool Overlay::LoadTextureFromFile(const char* fileName, ID3D12Device* device, D3
     fseek(file, 0, SEEK_SET);
     void* fileData = IM_ALLOC(fileSize);
     fread(fileData, 1, fileSize, file);
-    bool ret = LoadTextureFromMemory(fileData, fileSize, device, srvCpuHandle, textureInfo, Config::opacity);
+    bool ret = LoadTextureFromMemory(fileData, fileSize, device, srvCpuHandle, textureInfo, Config::opacity, grayscale);
     IM_FREE(fileData);
 
     return ret;
 }
 
-bool Overlay::LoadTextureFromMemory(const void* data, size_t data_size, ID3D12Device* d3d_device, D3D12_CPU_DESCRIPTOR_HANDLE srv_cpu_handle, TextureInfo* textureInfo, float opacity){
-    // Load from disk into a raw RGBA buffer
+bool Overlay::LoadTextureFromMemory(const void* data, size_t data_size, ID3D12Device* d3d_device, D3D12_CPU_DESCRIPTOR_HANDLE srv_cpu_handle, TextureInfo* textureInfo, float opacity, bool grayscale) {
     int image_width = 0;
     int image_height = 0;
     unsigned char* image_data = stbi_load_from_memory((const unsigned char*)data, (int)data_size, &image_width, &image_height, NULL, 4);
-    if (image_data == NULL)
+    if (image_data == NULL) {
         return false;
+    }
 
     if (opacity < 0.0f) opacity = 0.0f;
     if (opacity > 1.0f) opacity = 1.0f;
+
     for (int y = 0; y < image_height; y++) {
         for (int x = 0; x < image_width; x++) {
-            int index = (y * image_width + x) * 4; // RGBA data
+            int index = (y * image_width + x) * 4;
+
+            if (grayscale) {
+                unsigned char r = image_data[index + 0];
+                unsigned char g = image_data[index + 1];
+                unsigned char b = image_data[index + 2];
+                unsigned char gray = static_cast<unsigned char>(0.299f * r + 0.587f * g + 0.114f * b);
+                image_data[index + 0] = gray;
+                image_data[index + 1] = gray;
+                image_data[index + 2] = gray;
+            }
+
             image_data[index + 3] = static_cast<unsigned char>(image_data[index + 3] * opacity);
         }
     }
