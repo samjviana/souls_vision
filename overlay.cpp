@@ -441,8 +441,22 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
     for (int i = 0; i < immuneEffects.size(); i++) {
         BarType type = immuneEffects[i];
-        TextureInfo effectTexture = GetTexture(GetTextureNameForType(type));
+        TextureInfo effectTexture = GetTexture(GetTextureNameForType(type, true));
         if (!effectTexture.textureResource) {
+            // log every field of the Texture Info
+            Logger::Error("Texture not found for effect: " + GetTextureNameForType(type, true));
+            Logger::Error("Index: " + std::to_string(effectTexture.index));
+            Logger::Error("Width: " + std::to_string(effectTexture.width));
+            Logger::Error("Height: " + std::to_string(effectTexture.height));
+            Logger::Error("SRV CPU Handle: " + std::to_string(effectTexture.srvCpuHandle.ptr));
+            Logger::Error("Texture Resource: " + std::to_string(reinterpret_cast<uintptr_t>(effectTexture.textureResource)));
+            TextureInfo _effectTexture = GetTexture(GetTextureNameForType(type));
+            Logger::Error("Texture not found for effect: " + GetTextureNameForType(type));
+            Logger::Error("Index: " + std::to_string(_effectTexture.index));
+            Logger::Error("Width: " + std::to_string(_effectTexture.width));
+            Logger::Error("Height: " + std::to_string(_effectTexture.height));
+            Logger::Error("SRV CPU Handle: " + std::to_string(_effectTexture.srvCpuHandle.ptr));
+            Logger::Error("Texture Resource: " + std::to_string(reinterpret_cast<uintptr_t>(_effectTexture.textureResource)));
             continue;
         }
 
@@ -580,7 +594,7 @@ void Overlay::LoadAllTextures(ID3D12Device* device) {
 
                 if (std::ranges::any_of(effectsNames, [&fileName](const std::string& effect) { return fileName.ends_with(effect + ".png") || fileName.ends_with(effect + ".jpg"); })) {
                     TextureInfo grayscaleTextureInfo = {};
-                    if (LoadTextureFromFile(filePath.c_str(), device, srvCpuHandle, &textureInfo, true)) {
+                    if (LoadTextureFromFile(filePath.c_str(), device, srvCpuHandle, &grayscaleTextureInfo, true)) {
                         grayscaleTextureInfo.index = textureIndex++;
                         fileName = fileName.substr(0, fileName.find_last_of('.')) + "GrayScale" + fileName.substr(fileName.find_last_of('.'));
                         textureMap_[fileName] = grayscaleTextureInfo;
@@ -636,11 +650,14 @@ bool Overlay::LoadTextureFromMemory(const void* data, size_t data_size, ID3D12De
             int index = (y * image_width + x) * 4;
 
             if (grayscale) {
-                unsigned char r = image_data[index + 0];
+                unsigned char r = image_data[index];
                 unsigned char g = image_data[index + 1];
                 unsigned char b = image_data[index + 2];
+
+                // Compute grayscale value using luminance formula
                 unsigned char gray = static_cast<unsigned char>(0.299f * r + 0.587f * g + 0.114f * b);
-                image_data[index + 0] = gray;
+
+                image_data[index] = gray;
                 image_data[index + 1] = gray;
                 image_data[index + 2] = gray;
             }
@@ -788,6 +805,10 @@ bool Overlay::LoadTextureFromMemory(const void* data, size_t data_size, ID3D12De
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     d3d_device->CreateShaderResourceView(pTexture, &srvDesc, srv_cpu_handle);
 
+    if (!pTexture || pTexture == 0) {
+        return false;
+    }
+
     textureInfo->textureResource = pTexture;
     textureInfo->width = image_width;
     textureInfo->height = image_height;
@@ -806,7 +827,7 @@ TextureInfo Overlay::GetTexture(const std::string &textureName) {
     return {};
 }
 
-std::string Overlay::GetTextureNameForType(BarType type) {
+std::string Overlay::GetTextureNameForType(BarType type, bool grayscale) {
     std::unordered_map<BarType, std::string> textureNames = {
         { BarType::HP, "Red.png" },
         { BarType::FP, "Blue.png" },
@@ -821,9 +842,27 @@ std::string Overlay::GetTextureNameForType(BarType type) {
         { BarType::Madness, "Madness.png" }
     };
 
-    if (textureNames.find(type) == textureNames.end()) {
+    if (textureNames.find(type) == textureNames.end() && !grayscale) {
         return "";
     }
+
+    if (!grayscale) {
+        return textureNames[type];
+    }
+
+    textureNames = {
+            { BarType::HP, "RedGrayScale.png" },
+            { BarType::FP, "BlueGrayScale.png" },
+            { BarType::Stamina, "GreenGrayScale.png" },
+            { BarType::Stagger, "YellowGrayScale.png" },
+            { BarType::Poison, "PoisonGrayScale.png" },
+            { BarType::ScarletRot, "ScarletRotGrayScale.png" },
+            { BarType::Hemorrhage, "HemorrhageGrayScale.png" },
+            { BarType::DeathBlight, "DeathBlightGrayScale.png" },
+            { BarType::Frostbite, "FrostbiteGrayScale.png" },
+            { BarType::Sleep, "SleepGrayScale.png" },
+            { BarType::Madness, "MadnessGrayScale.png" }
+    };
 
     return textureNames[type];
 }
