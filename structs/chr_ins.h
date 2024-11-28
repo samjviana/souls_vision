@@ -14,7 +14,9 @@ class ChrIns {
 public:
     char pad_0000[8];           //0x0000
     uint64_t handle;            //0x0008
-    char pad_0010[88];          //0x0010
+    char pad_0010[80];          //0x0010
+    uint32_t paramId;           //0x0060
+    char pad_0064[4];           //0x0064
     int32_t chrType;            //0x0068
     char pad_006C[292];         //0x006C
     ChrModuleBag* moduleBag;    //0x0190

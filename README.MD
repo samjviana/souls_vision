@@ -1,6 +1,19 @@
 # Souls Vision
 Souls Vision adds a customizable overlay to the top-right corner of the screen (by default), showing additional information about the currently targeted enemy, including HP, Stamina, Stance, and Buildup bars for effects (like Poison and Frostbite).
 
+## Features
+* **Stat Bars**: Shows the current and maximum HP, FP, Stamina, and Stagger/Poise of the targeted enemy.
+  * The FP bar usually only appear to "player-like" enemies
+* **Best Effects**: Shows the best effects to use against the targeted enemy, based on the lowest value necessary to trigger them.
+* **Buildup Bars**: Shows the current buildup of effects like Poison, Scarlet Rot, Hemorrhage, Death Blight, Frostbite, Sleep, and Madness.
+  * Only appear if the enemy has some effect being applied to it.
+* **Customizable**: Highly customizable, with options to change the positions, sizes, and visibility of the bars.
+  * The config file is generated the first time the game is opened with the mod, and it is reloaded automatically every time it is edited.
+  * The `opacity` param requires the game to be restarted to take effect.
+* **Draggable Overlay**: The overlay can be dragged around the screen by clicking and dragging it.
+  * The parameter `dragOverlay` must be set to `true` in the config file to enable this feature.
+  * I recommend enabling entering a menu (like Equipment) to show mouse cursor to make it easier to drag the overlay. (I'm working on a better way to do this)
+
 ## Configuration
 <details>
 <summary>Config file details</summary>
@@ -13,7 +26,7 @@ The first time the game opens with the mod it will generate a default sv_config.
 * **`bestEffects`**: *int* - How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `2`.
 * **`bestEffectIconSize`**: *int* - Size of the best effect icons. Default is `33`.
 * **`statBarSpacing`**: *int* - Spacing between the bars, the space used around the "bestEffect" will be half of this. Default is `0`.
-* **`statBar`** | **`effectBar`**: *object* - Configuration for the bars, `statBar` for the HP, FP, Stamina, Poise and `effectBar` for the Buildup bars.
+* **`statBar`**: *object* - Configuration related to the bars.
     * **`position`**: *object* - Determines the bar’s on-screen position from top-left to bottom-right.
         * **`x`**: *int* - Horizontal position of the bar in pixels.
         * **`y`**: *int* - Vertical position of the bar in pixels.

@@ -48,6 +48,22 @@ add_library(souls_vision SHARED
         stat_bar.h
         effect_bar.cpp
         effect_bar.h
+        structs/solo_param_repository_imp.cpp
+        structs/solo_param_repository_imp.h
+        structs/fd4_basic_hash_string.cpp
+        structs/fd4_basic_hash_string.h
+        structs/solo_param_holder.cpp
+        structs/solo_param_holder.h
+        structs/param_res_cap.cpp
+        structs/param_res_cap.h
+        structs/param_data.cpp
+        structs/param_data.h
+        structs/param_header.cpp
+        structs/param_header.h
+        structs/param_row.cpp
+        structs/param_row.h
+        structs/npc_param.cpp
+        structs/npc_param.h
 )
 
 target_link_libraries(souls_vision PRIVATE d3d12 dxgi dxguid)
