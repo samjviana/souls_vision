@@ -13,9 +13,11 @@
 #include "stb_image.h"
 #include "config.h"
 #include "util.h"
+#include "memory.h"
 
 #include <string>
 #include <algorithm>
+#include <ranges>
 
 #include <backends/imgui_impl_dx12.h>
 #include <backends/imgui_impl_win32.h>
@@ -294,13 +296,23 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         return;
     }
 
-    std::vector<std::tuple<BarType, int>> strongestEffects;
-    std::transform(effectBars_.begin(), effectBars_.end(), std::back_inserter(strongestEffects), [&targetChrIns](const EffectBar& bar) {
-        float maxValue = GetTargetMaxValue(bar.type, targetChrIns);
-        return std::make_tuple(bar.type, (int)maxValue);
-    });
-    std::sort(strongestEffects.begin(), strongestEffects.end(), [](const auto& a, const auto& b) {
-        return std::get<1>(a) < std::get<1>(b);
+    NpcParam* npcParam = GameHandler::GetNpcParam(targetChrIns->paramId);
+    if (!npcParam) {
+        return;
+    }
+
+    std::vector<BarType> immuneEffects = effectBars_
+            | std::views::filter([&targetChrIns](const EffectBar& bar) { return GetTargetMaxValue(bar.type, targetChrIns) >= 999; })
+            | std::views::transform([](const EffectBar& bar) { return bar.type; })
+            | std::ranges::to<std::vector>();
+
+    std::vector<BarType> strongestEffects = effectBars_
+            | std::views::filter([&targetChrIns](const EffectBar& bar) { return GetTargetMaxValue(bar.type, targetChrIns) < 999; })
+            | std::views::transform([](const EffectBar& bar) { return bar.type; })
+            | std::ranges::to<std::vector>();
+
+    std::ranges::sort(strongestEffects, [&targetChrIns](BarType a, BarType b) {
+        return GetTargetMaxValue(a, targetChrIns) < GetTargetMaxValue(b, targetChrIns);
     });
 
     std::vector<std::tuple<StatBar, BarSettings, int>> statBarsToRender = {};
@@ -392,7 +404,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
     float paddingY = statBarsheight;
 
     for (int i = 0; i < Config::bestEffects && i < strongestEffects.size(); i++) {
-        auto [type, value] = strongestEffects[i];
+        BarType type = strongestEffects[i];
         TextureInfo effectTexture = GetTexture(GetTextureNameForType(type));
         if (!effectTexture.textureResource) {
             continue;
@@ -410,7 +422,26 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         ImGui::Image(effectIconTexID, iconSize);
     }
 
-    if (!strongestEffects.empty() || Config::bestEffects != 0) {
+    for (int i = 0; i < immuneEffects.size(); i++) {
+        BarType type = immuneEffects[i];
+        TextureInfo effectTexture = GetTexture(GetTextureNameForType(type));
+        if (!effectTexture.textureResource) {
+            continue;
+        }
+
+        D3D12_GPU_DESCRIPTOR_HANDLE effectIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), effectTexture.index);
+        auto effectIconTexID = static_cast<ImTextureID>(effectIconHandle.ptr);
+
+        ImVec2 iconSize = Config::bestEffectIconSize;
+        ImVec2 iconPosition = ImVec2(
+            Config::statBarSettings.size.x - (i * Config::bestEffectIconSize.x) - 10.0f,
+            paddingY - 5.0f + (Config::statBarSpacing * 0.5f)
+        );
+        ImGui::SetCursorPos(iconPosition);
+        ImGui::Image(effectIconTexID, iconSize);
+    }
+
+    if (!strongestEffects.empty() || Config::bestEffects != 0 || !immuneEffects.empty()) {
         paddingY += bestEffectHeight + Config::statBarSpacing;
     }
 
