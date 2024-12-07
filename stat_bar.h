@@ -14,7 +14,7 @@ class StatBar {
 public:
     StatBar(BarType type, const std::string& barTexture, SIZE_T descriptorSize, D3D12_GPU_DESCRIPTOR_HANDLE srvHeapStart);
 
-    void Render(const BarSettings& settings, float paddingY, int decimals = 0);
+    void Render(const BarSettings& settings, float paddingX, float paddingY, int decimals = 0);
 
     BarType type;
 

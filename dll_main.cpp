@@ -37,6 +37,7 @@ DWORD WINAPI Setup(LPVOID lpParam) {
     gGameWindowSize = GetWindowSize(gGameWindow);
 
     Config::LoadConfig(gConfigFilePath);
+    Config::SaveConfig(gConfigFilePath);
     if (Config::debug) {
         Logger::InitializeDebug();
     }

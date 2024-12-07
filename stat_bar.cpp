@@ -25,7 +25,7 @@ StatBar::StatBar(BarType _type, const std::string& barTexture, SIZE_T descriptor
     }
 }
 
-void StatBar::Render(const BarSettings &settings, float paddingY, int decimals) {
+void StatBar::Render(const BarSettings &settings, float paddingX, float paddingY, int decimals) {
     if (!backgroundInfo_.textureResource || !barInfo_.textureResource || !edgeInfo_.textureResource || !frameInfo_.textureResource) {
         Logger::Error("Failed to retrieve one or more textures.");
         return;
@@ -44,7 +44,7 @@ void StatBar::Render(const BarSettings &settings, float paddingY, int decimals) 
     float percentage = settings.currentValue / settings.maxValue;
 
     ImVec2 barPosition = ImVec2(
-            settings.size.x * 0.029f,
+            paddingX + (settings.size.x * 0.029f),
             paddingY + (settings.size.y * 0.125f)
     );
     ImVec2 barSize = ImVec2(
@@ -66,7 +66,7 @@ void StatBar::Render(const BarSettings &settings, float paddingY, int decimals) 
             settings.position.y + barPosition.y
     );
     ImVec2 clipMax = ImVec2(
-            settings.position.x + settings.size.x,
+            settings.position.x + settings.size.x + paddingX,
             settings.position.y + settings.size.y + paddingY
     );
     ImGui::PushClipRect(clipMin, clipMax, true);
@@ -82,7 +82,7 @@ void StatBar::Render(const BarSettings &settings, float paddingY, int decimals) 
     ImGui::Image(edgeTexID, edgeSize);
     ImGui::PopClipRect();
 
-    ImGui::SetCursorPos(ImVec2(0.0f, paddingY));
+    ImGui::SetCursorPos(ImVec2(paddingX, paddingY));
     ImGui::Image(frameTexID, ImVec2(settings.size.x, settings.size.y));
 
     if (!settings.hideText) {

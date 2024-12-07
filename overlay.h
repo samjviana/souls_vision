@@ -34,7 +34,8 @@ private:
     static void Render(IDXGISwapChain3* pSwapChain);
     static void CleanupRenderTargets();
     static void InitializeDXResources(IDXGISwapChain3* pSwapChain);
-    static void InitializeRenderTargers(IDXGISwapChain3* pSwapChain);
+    static void InitializeFileResources(ID3D12Device* device);
+    static void InitializeRenderTargets(IDXGISwapChain3* pSwapChain);
     static void InitializeBars(ID3D12Device* device);
     static void DrawStatBars(ID3D12Device* device);
     static void RenderTargets(IDXGISwapChain3 *pSwapChain);

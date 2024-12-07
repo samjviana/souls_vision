@@ -28,7 +28,7 @@ namespace souls_vision {
     }
 }
 
-void EffectBar::Render(const BarSettings &settings, float paddingY, int decimals) {
+void EffectBar::Render(const BarSettings &settings, float paddingX, float paddingY, int decimals) {
     if (!backgroundInfo_.textureResource || !barInfo_.textureResource || !edgeInfo_.textureResource || !frameInfo_.textureResource || !iconInfo_.textureResource) {
         Logger::Error("Failed to retrieve one or more textures.");
         return;
@@ -55,7 +55,7 @@ void EffectBar::Render(const BarSettings &settings, float paddingY, int decimals
             settings.size.y * 0.73
     );
     ImVec2 barPosition = ImVec2(
-            iconSize.x - (iconSize.x * 0.14),
+            paddingX + (iconSize.x - (iconSize.x * 0.14)),
             paddingY + (iconSize.y / 2) - (barSize.y / 2)
     );
     ImVec2 uv0 = ImVec2(0.0f, 0.0f);
@@ -73,7 +73,7 @@ void EffectBar::Render(const BarSettings &settings, float paddingY, int decimals
             settings.position.y + barPosition.y
     );
     ImVec2 clipMax = ImVec2(
-            settings.position.x + settings.size.x,
+            settings.position.x + settings.size.x + paddingX,
             settings.position.y + settings.size.y + paddingY
     );
     ImGui::PushClipRect(clipMin, clipMax, true);
@@ -90,7 +90,7 @@ void EffectBar::Render(const BarSettings &settings, float paddingY, int decimals
     ImGui::PopClipRect();
 
     ImVec2 framePosition = ImVec2(
-            iconSize.x - (iconSize.x * 0.14),
+            paddingX + iconSize.x - (iconSize.x * 0.14),
             paddingY + (iconSize.y / 2) - (settings.size.y / 2)
     );
     ImVec2 frameSize = ImVec2(
@@ -100,7 +100,7 @@ void EffectBar::Render(const BarSettings &settings, float paddingY, int decimals
     ImGui::SetCursorPos(framePosition);
     ImGui::Image(frameTexID, frameSize);
 
-    ImVec2 iconPosition = ImVec2(0.0f, paddingY);
+    ImVec2 iconPosition = ImVec2(paddingX, paddingY);
     ImGui::SetCursorPos(iconPosition);
     ImGui::Image(iconTexID, iconSize);
 

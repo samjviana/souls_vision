@@ -7,16 +7,20 @@
 
 namespace souls_vision {
 
-BarVisibility Config::barVisibility;
+ComponentVisibility Config::componentVisibility;
 BarSettings Config::statBarSettings;
 ImVec2 Config::bestEffectIconSize = ImVec2(39, 33);
+ImVec2 Config::dmgTypeIconSize = ImVec2(30, 30);
 ImVec2 Config::effectBarIconSize = ImVec2(56, 48);
 int Config::bestEffects = 3;
 int Config::statBarSpacing = 0;
+float Config::fontSize = 18.0f;
 float Config::opacity;
 bool Config::debug = false;
 bool Config::dragOverlay = false;
 bool Config::configUpdated = false;
+bool Config::opacityUpdated = false;
+bool Config::fontSizeUpdated = false;
 
 bool Config::CheckConfig(const std::string& configFilePath) {
     try {
@@ -47,6 +51,11 @@ bool Config::CheckConfig(const std::string& configFilePath) {
             updated = true;
         }
 
+        if (!configJson.contains("fontSize")) {
+            configJson["fontSize"] = 18.0f;
+            updated = true;
+        }
+
         if (!configJson.contains("opacity")) {
             configJson["opacity"] = 1.0f;
             updated = true;
@@ -67,8 +76,13 @@ bool Config::CheckConfig(const std::string& configFilePath) {
             updated = true;
         }
 
-        if (!configJson.contains("barVisibility")) {
-            configJson["barVisibility"] = {
+        if (!configJson.contains("dmgTypeIconSize")) {
+            configJson["dmgTypeIconSize"] = 30;
+            updated = true;
+        }
+
+        if (!configJson.contains("componentVisibility") && !configJson.contains("barVisibility")) {
+            configJson["componentVisibility"] = {
                     {"hp", true},
                     {"fp", true},
                     {"stamina", true},
@@ -79,7 +93,11 @@ bool Config::CheckConfig(const std::string& configFilePath) {
                     {"deathBlight", true},
                     {"frostbite", true},
                     {"sleep", true},
-                    {"madness", true}
+                    {"madness", true},
+                    {"bestEffects", true},
+                    {"immuneEffects", true},
+                    {"dmgTypes", true},
+                    {"neutralDmgTypes", false}
             };
             updated = true;
         }
@@ -134,22 +152,33 @@ void Config::SaveConfig(const std::string& configFilePath) {
 
     configJson["debug"] = debug;
     configJson["dragOverlay"] = dragOverlay;
+    configJson["fontSize"] = fontSize;
     configJson["opacity"] = opacity;
     configJson["bestEffects"] = bestEffects;
 
-    configJson["barVisibility"] = {
-        {"hp", barVisibility.hp},
-        {"fp", barVisibility.fp},
-        {"stamina", barVisibility.stamina},
-        {"stagger", barVisibility.stagger},
-        {"poison", barVisibility.poison},
-        {"scarletRot", barVisibility.scarletRot},
-        {"hemorrhage", barVisibility.hemorrhage},
-        {"deathBlight", barVisibility.deathBlight},
-        {"frostbite", barVisibility.frostbite},
-        {"sleep", barVisibility.sleep},
-        {"madness", barVisibility.madness}
+    configJson["componentVisibility"] = {
+        {"hp",          componentVisibility.hp},
+        {"fp",          componentVisibility.fp},
+        {"stamina",     componentVisibility.stamina},
+        {"stagger",     componentVisibility.stagger},
+        {"poison",      componentVisibility.poison},
+        {"scarletRot",  componentVisibility.scarletRot},
+        {"hemorrhage",  componentVisibility.hemorrhage},
+        {"deathBlight", componentVisibility.deathBlight},
+        {"frostbite",   componentVisibility.frostbite},
+        {"sleep",       componentVisibility.sleep},
+        {"madness",     componentVisibility.madness},
+        {"bestEffects", componentVisibility.bestEffects},
+        {"immuneEffects", componentVisibility.immuneEffects},
+        {"dmgTypes", componentVisibility.dmgTypes},
+        {"neutralDmgTypes", componentVisibility.neutralDmgTypes}
     };
+
+    if (configJson.contains("barVisibility")) {
+        Logger::Info("Updating old config format to new format.");
+        Logger::Info("Fields: barVisibility -> componentVisibility");
+        configJson.erase("barVisibility");
+    }
 
     configJson["statBar"]["position"]["x"] = statBarSettings.position.x;
     configJson["statBar"]["position"]["y"] = statBarSettings.position.y;
@@ -158,6 +187,7 @@ void Config::SaveConfig(const std::string& configFilePath) {
     configJson["statBar"]["hideText"] = statBarSettings.hideText;
 
     configJson["bestEffectIconSize"] = bestEffectIconSize.x;
+    configJson["dmgTypeIconSize"] = dmgTypeIconSize.x;
     configJson["statBarSpacing"] = statBarSpacing;
 
     configFile << configJson.dump(4);
@@ -181,23 +211,22 @@ void Config::LoadConfig(const std::string& configFilePath) {
 
         debug = configJson["debug"];
         dragOverlay = configJson["dragOverlay"];
+        if (configJson["fontSize"] != fontSize) {
+            fontSizeUpdated = true;
+        }
+        fontSize = configJson["fontSize"];
+        if (configJson["opacity"] != opacity) {
+            opacityUpdated = true;
+        }
         opacity = configJson["opacity"];
         bestEffects = configJson["bestEffects"];
         bestEffectIconSize.x = configJson["bestEffectIconSize"];
         bestEffectIconSize.y = bestEffectIconSize.x * 0.85f;
+        dmgTypeIconSize.x = configJson["dmgTypeIconSize"];
+        dmgTypeIconSize.y = dmgTypeIconSize.x;
         statBarSpacing = configJson["statBarSpacing"];
 
-        barVisibility.hp = configJson["barVisibility"]["hp"];
-        barVisibility.fp = configJson["barVisibility"]["fp"];
-        barVisibility.stamina = configJson["barVisibility"]["stamina"];
-        barVisibility.stagger = configJson["barVisibility"]["stagger"];
-        barVisibility.poison = configJson["barVisibility"]["poison"];
-        barVisibility.scarletRot = configJson["barVisibility"]["scarletRot"];
-        barVisibility.hemorrhage = configJson["barVisibility"]["hemorrhage"];
-        barVisibility.deathBlight = configJson["barVisibility"]["deathBlight"];
-        barVisibility.frostbite = configJson["barVisibility"]["frostbite"];
-        barVisibility.sleep = configJson["barVisibility"]["sleep"];
-        barVisibility.madness = configJson["barVisibility"]["madness"];
+        componentVisibility = LoadComponentVisibility(configJson);
 
         statBarSettings.position = ImVec2(configJson["statBar"]["position"]["x"], configJson["statBar"]["position"]["y"]);
         statBarSettings.size = ImVec2(configJson["statBar"]["size"]["width"], configJson["statBar"]["size"]["height"]);
@@ -221,12 +250,14 @@ void Config::CreateConfig(const std::string &configFilePath) {
 
         configJson["debug"] = false;
         configJson["dragOverlay"] = false;
+        configJson["fontSize"] = 18.0f;
         configJson["opacity"] = 0.9f;
         configJson["bestEffects"] = 3;
         configJson["bestEffectIconSize"] = 39;
+        configJson["dmgTypeIconSize"] = 30;
         configJson["statBarSpacing"] = 0;
 
-        configJson["barVisibility"] = {
+        configJson["componentVisibility"] = {
             {"hp", true},
             {"fp", true},
             {"stamina", true},
@@ -237,7 +268,11 @@ void Config::CreateConfig(const std::string &configFilePath) {
             {"deathBlight", true},
             {"frostbite", true},
             {"sleep", true},
-            {"madness", true}
+            {"madness", true},
+            {"bestEffects", true},
+            {"immuneEffects", true},
+            {"dmgTypes", true},
+            {"neutralDmgTypes", false}
         };
 
         configJson["statBar"]["position"]["x"] = gGameWindowSize.width - barSize.width - 5;
@@ -263,6 +298,52 @@ void Config::CreateConfig(const std::string &configFilePath) {
     } catch (const std::exception& e) {
         Logger::Error(std::string("Config::CreateConfig - Error: ") + e.what());
     }
+}
+
+ComponentVisibility Config::LoadComponentVisibility(const nlohmann::json &configJson) {
+    if (!configJson.contains("componentVisibility") && !configJson.contains("barVisibility")) {
+        return {
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true, false
+        };
+    }
+
+    if (configJson.contains("barVisibility") && !configJson.contains("componentVisibility")) {
+        return {
+            configJson["barVisibility"]["hp"],
+            configJson["barVisibility"]["fp"],
+            configJson["barVisibility"]["stamina"],
+            configJson["barVisibility"]["stagger"],
+            configJson["barVisibility"]["poison"],
+            configJson["barVisibility"]["scarletRot"],
+            configJson["barVisibility"]["hemorrhage"],
+            configJson["barVisibility"]["deathBlight"],
+            configJson["barVisibility"]["frostbite"],
+            configJson["barVisibility"]["sleep"],
+            configJson["barVisibility"]["madness"],
+            true,
+            true,
+            true,
+            false
+        };
+    }
+
+    return {
+        configJson["componentVisibility"]["hp"],
+        configJson["componentVisibility"]["fp"],
+        configJson["componentVisibility"]["stamina"],
+        configJson["componentVisibility"]["stagger"],
+        configJson["componentVisibility"]["poison"],
+        configJson["componentVisibility"]["scarletRot"],
+        configJson["componentVisibility"]["hemorrhage"],
+        configJson["componentVisibility"]["deathBlight"],
+        configJson["componentVisibility"]["frostbite"],
+        configJson["componentVisibility"]["sleep"],
+        configJson["componentVisibility"]["madness"],
+        configJson["componentVisibility"]["bestEffects"],
+        configJson["componentVisibility"]["immuneEffects"],
+        configJson["componentVisibility"]["dmgTypes"],
+        configJson["componentVisibility"]["neutralDmgTypes"]
+    };
 }
 
 } // souls_vision

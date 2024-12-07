@@ -42,7 +42,7 @@ struct BarSettings {
     std::string textureName;
 };
 
-struct BarVisibility {
+struct ComponentVisibility {
     bool hp = true;
     bool fp = true;
     bool stamina = true;
@@ -54,6 +54,10 @@ struct BarVisibility {
     bool frostbite = true;
     bool sleep = true;
     bool madness = true;
+    bool bestEffects = true;
+    bool immuneEffects = true;
+    bool dmgTypes = true;
+    bool neutralDmgTypes = false;
 };
 
 struct BarConfig {

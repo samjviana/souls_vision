@@ -6,11 +6,12 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
   * The FP bar usually only appear to "player-like" enemies
 * **Best Effects**: Shows the best effects to use against the targeted enemy, based on the lowest value necessary to trigger them.
 * **Immune Effects**: Shows the effects that the targeted enemy is immune to in gray at the right of the best effects.
+* **Damage Types**: Shows the damage types that the targeted enemy is weak to, resistant to, or neutral to with icons highlighting how good or bad they are.
+  * The neutral damage types are hidden by default, but can be shown by changing the config file.
 * **Buildup Bars**: Shows the current buildup of effects like Poison, Scarlet Rot, Hemorrhage, Death Blight, Frostbite, Sleep, and Madness.
   * Only appear if the enemy has some effect being applied to it.
 * **Customizable**: Highly customizable, with options to change the positions, sizes, and visibility of the bars.
   * The config file is generated the first time the game is opened with the mod, and it is reloaded automatically every time it is edited.
-  * The `opacity` param requires the game to be restarted to take effect.
 * **Draggable Overlay**: The overlay can be dragged around the screen by clicking and dragging it.
   * The parameter `dragOverlay` must be set to `true` in the config file to enable this feature.
   * I recommend enabling entering a menu (like Equipment) to show mouse cursor to make it easier to drag the overlay. (I'm working on a better way to do this)
@@ -26,6 +27,8 @@ The first time the game opens with the mod it will generate a default sv_config.
 * **`opacity`**: *float* - Opacity of the overlay, from 0.0 (fully transparent) to 1.0 (fully opaque). This option requires the game to be restarted to take effect.
 * **`bestEffects`**: *int* - How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `2`.
 * **`bestEffectIconSize`**: *int* - Size of the best effect icons. Default is `33`.
+* **`dmgTypeIconSize`**: *int* - Size of the damage type icons. Default is `30`.
+* **`fontSize`**: *float* - Font size of the text displayed on the bars. Default is `18.0`.
 * **`statBarSpacing`**: *int* - Spacing between the bars, the space used around the "bestEffect" will be half of this. Default is `0`.
 * **`statBar`**: *object* - Configuration related to the bars.
     * **`position`**: *object* - Determines the bar’s on-screen position from top-left to bottom-right.
@@ -35,18 +38,22 @@ The first time the game opens with the mod it will generate a default sv_config.
         * **`width`**: *int* - Width of the bar in pixels.
         * **`height`**: *int* - Height of the bar in pixels.
     * **`hideText`**: *bool* - If set to `true`, hides the text displayed on the bar (e.g. “90/219”).
-* **`barVisibility`**: *object* - Configuration for the visibility of the bars. All the bars are visible by default.
-  * **`hp`**: *bool* - If set to `false`, the HP bar will be hidden.
-  * **`fp`**: *bool* - If set to `false`, the FP bar will be hidden.
-  * **`stamina`**: *bool* - If set to `false`, the Stamina bar will be hidden.
-  * **`stagger`**: *bool* - If set to `false`, the Stagger bar will be hidden.
-  * **`poison`**: *bool* - If set to `false`, the Poison bar will be hidden.
-  * **`scarletRot`**: *bool* - If set to `false`, the Scarlet Rot bar will be hidden.
-  * **`hemorrhage`**: *bool* - If set to `false`, the Hemorrhage bar will be hidden.
-  * **`deathBlight`**: *bool* - If set to `false`, the Death Blight bar will be hidden.
-  * **`frostbite`**: *bool* - If set to `false`, the Frostbite bar will be hidden.
-  * **`sleep`**: *bool* - If set to `false`, the Sleep bar will be hidden.
-  * **`madness`**: *bool* - If set to `false`, the Madness bar will be hidden.
+* **`componentVisibility`**: *object* - Configuration for the visibility of the bars. All the bars are visible by default.
+  * **`hp`**: *bool* - If set to `false`, the HP bar will be hidden. Default is `true`.
+  * **`fp`**: *bool* - If set to `false`, the FP bar will be hidden. Default is `true`.
+  * **`stamina`**: *bool* - If set to `false`, the Stamina bar will be hidden. Default is `true`.
+  * **`stagger`**: *bool* - If set to `false`, the Stagger bar will be hidden. Default is `true`.
+  * **`poison`**: *bool* - If set to `false`, the Poison bar will be hidden. Default is `true`.
+  * **`scarletRot`**: *bool* - If set to `false`, the Scarlet Rot bar will be hidden. Default is `true`.
+  * **`hemorrhage`**: *bool* - If set to `false`, the Hemorrhage bar will be hidden. Default is `true`.
+  * **`deathBlight`**: *bool* - If set to `false`, the Death Blight bar will be hidden. Default is `true`.
+  * **`frostbite`**: *bool* - If set to `false`, the Frostbite bar will be hidden. Default is `true`.
+  * **`sleep`**: *bool* - If set to `false`, the Sleep bar will be hidden. Default is `true`.
+  * **`madness`**: *bool* - If set to `false`, the Madness bar will be hidden. Default is `true`.
+  * **`bestEffects`**: *bool* - If set to `false`, the Best Effects against the enemy will be hidden. Default is `true`.
+  * **`immuneEffects`**: *bool* - If set to `false`, the effects that the enemy is immune to will be hidden. Default is `true`.
+  * **`dmgTypes`**: *bool* - If set to `false`, the Damage Type information will be hidden. Default is `true`.
+  * **`neutralDmgTypes`**: *bool* - If set to `true`, the Neutral Damage Type information will be shown. Default is `false`.
 </details>
 
 ## Compatibility
@@ -56,6 +63,12 @@ Souls Vision was developed and tested on version 1.16, it is expected to work wi
 Add the `SoulsVision.dll` and `sv_assets` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.3.0] - 07-12-2024**
+  * Added the Weak, Neutral and Resistant damage types to the overlay
+  * Added more customization to the overlay components
+    * It's possible to control the visibility of more components individually
+    * Added a config parameter to control the font size of the overlay
+    * The `opacity` parameter no longer requires the game to be restarted to take effect
 * **[v0.2.2] - 28-11-2024**
   * Changed the overlay to use ER font
 * **[v0.2.1] - 28-11-2024**

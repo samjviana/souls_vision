@@ -16,16 +16,20 @@ namespace souls_vision {
 
 class Config {
 public:
-    static BarVisibility barVisibility;
+    static ComponentVisibility componentVisibility;
     static BarSettings statBarSettings;
     static ImVec2 bestEffectIconSize;
+    static ImVec2 dmgTypeIconSize;
     static ImVec2 effectBarIconSize;
     static int statBarSpacing;
     static int bestEffects;
+    static float fontSize;
     static float opacity;
     static bool debug;
     static bool dragOverlay;
     static bool configUpdated;
+    static bool opacityUpdated;
+    static bool fontSizeUpdated;
 
     static bool CheckConfig(const std::string& configFilePath);
     static void SaveConfig(const std::string& configFilePath);
@@ -33,6 +37,7 @@ public:
 
 private:
     static void CreateConfig(const std::string& configFilePath);
+    static ComponentVisibility LoadComponentVisibility(const nlohmann::json& configJson);
 };
 
 } // souls_vision

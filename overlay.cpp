@@ -24,6 +24,7 @@
 #include <backends/imgui_impl_win32.h>
 
 #include <iostream>
+#include <set>
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -224,20 +225,18 @@ void Overlay::InitializeDXResources(IDXGISwapChain3 *pSwapChain) {
                         srvHeap_->GetGPUDescriptorHandleForHeapStart());
     ImGui::GetMainViewport()->PlatformHandleRaw = souls_vision::gGameWindow;
     oWndProc_ = SetWindowLongPtrW(souls_vision::gGameWindow, GWLP_WNDPROC, (LONG_PTR)WndProc);
+}
 
-    LoadAllTextures(device);
+void Overlay::InitializeFileResources(ID3D12Device* device) {
+    if (!font_ || Config::fontSizeUpdated) {
+        font_ = LoadFont();
+        Config::fontSizeUpdated = false;
+    }
 
-    font_ = LoadFont();
-//    std::string fontPath = gDllPath + "\\fonts\\Agmena W1G.ttf";
-//    if (std::filesystem::exists(fontPath)) {
-//        Logger::Info("Loading font from: " + fontPath);
-//        font_ = ImGui::GetIO().Fonts->AddFontFromFileTTF(fontPath.c_str(), 16.0f);
-//        if (!font_) {
-//            Logger::Error("Failed to load font.");
-//        }
-//    } else {
-//        Logger::Error("Font file not found: " + fontPath);
-//    }
+    if (textureMap_.empty() || Config::opacityUpdated) {
+        LoadAllTextures(device);
+        Config::opacityUpdated = false;
+    }
 }
 
 inline int Overlay::GetCorrectDXGIFormat(int eCurrentFormat) {
@@ -248,7 +247,7 @@ inline int Overlay::GetCorrectDXGIFormat(int eCurrentFormat) {
     return eCurrentFormat;
 }
 
-void Overlay::InitializeRenderTargers(IDXGISwapChain3 *pSwapChain) {
+void Overlay::InitializeRenderTargets(IDXGISwapChain3 *pSwapChain) {
     DXGI_SWAP_CHAIN_DESC sd;
     pSwapChain->GetDesc(&sd);
 
@@ -332,6 +331,68 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         return;
     }
 
+    std::unordered_map<std::string, float> dmgAbsorptions = {
+            {"Fire", npcParam->fireDamageCutRate},
+            {"Magic", npcParam->magicDamageCutRate},
+            {"Lightning", npcParam->thunderDamageCutRate},
+            {"Holy", npcParam->darkDamageCutRate},
+    };
+    std::vector<std::pair<std::string, float>> bestDmgTypes = dmgAbsorptions
+            | std::views::filter([](const std::pair<std::string, float>& pair) { return pair.second > 1.0; })
+            | std::views::transform([](const std::pair<std::string, float>& pair) { return pair; })
+            | std::ranges::to<std::vector>();
+    std::ranges::sort(bestDmgTypes, [](const std::pair<std::string, float>& a, const std::pair<std::string, float>& b) {
+        return a.second > b.second;
+    });
+    std::vector<float> uniqueBests = bestDmgTypes
+            | std::views::transform([](const std::pair<std::string, float>& pair) { return pair.second; })
+            | std::ranges::to<std::set>()
+            | std::views::transform([](float f) { return f; })
+            | std::ranges::to<std::vector>();
+    std::ranges::sort(uniqueBests, std::less<>());
+    std::map<std::string, int> bestDmgTypeIndices = {};
+    for (int i = 0; i < uniqueBests.size(); i++) {
+        std::string twoPoint = std::format("{:.2f}", uniqueBests[i]);
+        bestDmgTypeIndices[twoPoint] = i + 1;
+    }
+    int biggestBestIndex = 0;
+    if (!uniqueBests.empty()) {
+        std::string biggestBest = std::format("{:.2f}", std::ranges::max(uniqueBests));
+        biggestBestIndex = bestDmgTypeIndices.contains(biggestBest) ? bestDmgTypeIndices[biggestBest] : -1;
+    }
+
+    std::vector<std::pair<std::string, float>> worseDmgTypes = dmgAbsorptions
+            | std::views::filter([](const std::pair<std::string, float>& pair) { return pair.second < 1.0; })
+            | std::views::transform([](const std::pair<std::string, float>& pair) { return pair; })
+            | std::ranges::to<std::vector>();
+    std::ranges::sort(worseDmgTypes, [](const std::pair<std::string, float>& a, const std::pair<std::string, float>& b) {
+        return a.second < b.second;
+    });
+    std::vector<float> uniqueWorses = worseDmgTypes
+            | std::views::transform([](const std::pair<std::string, float>& pair) { return pair.second; })
+            | std::ranges::to<std::set>()
+            | std::views::transform([](float f) { return f; })
+            | std::ranges::to<std::vector>();
+    std::ranges::sort(uniqueWorses, std::greater<>());
+    std::map<std::string, int> worseDmgTypeIndices = {};
+    for (int i = 0; i < uniqueWorses.size(); i++) {
+        std::string twoPoint = std::format("{:.2f}", uniqueWorses[i]);
+        worseDmgTypeIndices[twoPoint] = i + 1;
+    }
+    int biggestWorseIndex = 0;
+    if (!uniqueWorses.empty()) {
+        std::string biggestWorse = std::format("{:.2f}", std::ranges::max(uniqueWorses));
+        biggestWorseIndex = worseDmgTypeIndices.contains(biggestWorse) ? worseDmgTypeIndices[biggestWorse] : -1;
+    }
+
+    std::vector<std::pair<std::string, float>> neutralDmgTypes = dmgAbsorptions
+            | std::views::filter([](const std::pair<std::string, float>& pair) { return pair.second == 1.0; })
+            | std::views::transform([](const std::pair<std::string, float>& pair) { return pair; })
+            | std::ranges::to<std::vector>();
+
+    int maxIconLength = std::max((int)bestDmgTypes.size(), (int)worseDmgTypes.size());
+    maxIconLength = std::max(maxIconLength, (int)neutralDmgTypes.size());
+
     std::vector<BarType> immuneEffects = effectBars_
             | std::views::filter([&targetChrIns](const EffectBar& bar) { return GetTargetMaxValue(bar.type, targetChrIns) >= 999; })
             | std::views::transform([](const EffectBar& bar) { return bar.type; })
@@ -392,6 +453,13 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         windowFlags |= ImGuiWindowFlags_NoResize;
     }
 
+    float dmgTypesWidth = (Config::dmgTypeIconSize.x * maxIconLength);
+    float windowWidth = Config::statBarSettings.size.x + dmgTypesWidth;
+    ImVec2 windowPosition = Config::statBarSettings.position;
+    if (gRendered) {
+        windowPosition.x -= dmgTypesWidth;
+    }
+
     float statBarsheight = ((Config::statBarSettings.size.y - 10.0f + Config::statBarSpacing) * statBarsToRender.size() + (10.0f + Config::statBarSpacing));
     float bestEffectHeight = 0;
     if (Config::bestEffects > 0) {
@@ -400,10 +468,10 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
     float effectBarsHeight = (Config::effectBarIconSize.y + Config::statBarSpacing) * effectBarsToRender.size();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); // Remove o padding
     ImVec2 windowSize = ImVec2(
-            Config::statBarSettings.size.x,
+            windowWidth,
             statBarsheight + bestEffectHeight + effectBarsHeight
     );
-    ImGui::SetNextWindowPos(Config::statBarSettings.position, ImGuiCond_Once);
+    ImGui::SetNextWindowPos(windowPosition, ImGuiCond_Once);
     ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y));
 
     static ImVec2 previousPosition = Config::statBarSettings.position;
@@ -428,13 +496,14 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
     for (int i = 0; i < statBarsToRender.size(); i++) {
         auto [bar, settings, decimals] = statBarsToRender[i];
         float paddingY = static_cast<float>(i) * (settings.size.y - 10.0f + Config::statBarSpacing);
+        float paddingX = dmgTypesWidth;
 
-        bar.Render(settings, paddingY, decimals);
+        bar.Render(settings, paddingX, paddingY, decimals);
     }
 
     float paddingY = statBarsheight;
 
-    for (int i = 0; i < Config::bestEffects && i < strongestEffects.size(); i++) {
+    for (int i = 0; i < Config::bestEffects && i < strongestEffects.size() && Config::componentVisibility.bestEffects; i++) {
         BarType type = strongestEffects[i];
         TextureInfo effectTexture = GetTexture(GetTextureNameForType(type));
         if (!effectTexture.textureResource) {
@@ -446,14 +515,14 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
         ImVec2 iconSize = Config::bestEffectIconSize;
         ImVec2 iconPosition = ImVec2(
-            Config::bestEffectIconSize.x * i + 5.0f,
+            dmgTypesWidth + (Config::bestEffectIconSize.x * i) + 5.0f,
             paddingY - 5.0f + (Config::statBarSpacing * 0.5f)
         );
         ImGui::SetCursorPos(iconPosition);
         ImGui::Image(effectIconTexID, iconSize);
     }
 
-    for (int i = 0; i < immuneEffects.size(); i++) {
+    for (int i = 0; i < immuneEffects.size() && Config::componentVisibility.immuneEffects; i++) {
         BarType type = immuneEffects[i];
         TextureInfo effectTexture = GetTexture(GetTextureNameForType(type, true));
         if (!effectTexture.textureResource) {
@@ -465,7 +534,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
         ImVec2 iconSize = Config::bestEffectIconSize;
         ImVec2 iconPosition = ImVec2(
-            Config::statBarSettings.size.x - ((immuneEffects.size() - i) * Config::bestEffectIconSize.x) - 10.0f,
+            (Config::statBarSettings.size.x + dmgTypesWidth) - ((immuneEffects.size() - i) * Config::bestEffectIconSize.x) - 10.0f,
             paddingY - 5.0f + (Config::statBarSpacing * 0.5f)
         );
         ImGui::SetCursorPos(iconPosition);
@@ -479,13 +548,124 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
     for (int i = 0; i < effectBarsToRender.size(); i++) {
         auto [bar, settings, decimals] = effectBarsToRender[i];
         float innerPaddingY = paddingY + static_cast<float>(i) * (Config::effectBarIconSize.y + Config::statBarSpacing);
+        float paddingX = dmgTypesWidth;
 
-        bar.Render(settings, innerPaddingY, decimals);
+        bar.Render(settings, paddingX, innerPaddingY, decimals);
+    }
+
+    ImVec2 damageTypeIconSize = Config::dmgTypeIconSize;
+
+    for (int i = 0; i < bestDmgTypes.size() && Config::componentVisibility.dmgTypes; i++) {
+        auto [dmgType, value] = bestDmgTypes[i];
+        TextureInfo dmgTypeTexture = GetTexture(dmgType + ".png");
+        if (!dmgTypeTexture.textureResource) {
+            continue;
+        }
+
+        D3D12_GPU_DESCRIPTOR_HANDLE dmgTypeIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), dmgTypeTexture.index);
+        auto dmgTypeIconTexID = static_cast<ImTextureID>(dmgTypeIconHandle.ptr);
+
+        ImVec2 iconPosition = ImVec2(
+            dmgTypesWidth - (damageTypeIconSize.x * (i + 1)) + (Config::statBarSettings.size.x * 0.01),
+            (Config::statBarSettings.size.y / 2.0f) - (damageTypeIconSize.y / 2.0f)
+        );
+        ImGui::SetCursorPos(iconPosition);
+        ImGui::Image(dmgTypeIconTexID, damageTypeIconSize);
+
+        TextureInfo greenArrowTexture = GetTexture("GreenArrow.png");
+        if (!greenArrowTexture.textureResource) {
+            continue;
+        }
+
+        D3D12_GPU_DESCRIPTOR_HANDLE greenArrowIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), greenArrowTexture.index);
+        auto greenArrowIconTexID = static_cast<ImTextureID>(greenArrowIconHandle.ptr);
+
+        ImVec2 arrowSize = ImVec2(damageTypeIconSize.x * 0.45, damageTypeIconSize.x * 0.8125 * 0.45);
+        ImVec2 arrowPosition = iconPosition;
+        arrowPosition.x += damageTypeIconSize.x - arrowSize.x + (arrowSize.x * 0.15);
+        arrowPosition.y += damageTypeIconSize.y - arrowSize.y;
+
+        std::string strValue = std::format("{:.2f}", value);
+        if (bestDmgTypeIndices.contains(strValue)) {
+            int arrowCount = bestDmgTypeIndices[strValue];
+
+            for (int i = 0; i < arrowCount; i++) {
+                arrowPosition.y -= arrowSize.y * i * 0.55;
+                ImGui::SetCursorPos(arrowPosition);
+                ImGui::Image(greenArrowIconTexID, arrowSize);
+            }
+        }
+    }
+
+    paddingY = damageTypeIconSize.y + Config::statBarSpacing;
+
+    for (int i = 0; i < neutralDmgTypes.size() && Config::componentVisibility.dmgTypes && Config::componentVisibility.neutralDmgTypes; i++) {
+        auto [dmgType, value] = neutralDmgTypes[i];
+        TextureInfo dmgTypeTexture = GetTexture(dmgType + ".png");
+        if (!dmgTypeTexture.textureResource) {
+            continue;
+        }
+
+        D3D12_GPU_DESCRIPTOR_HANDLE dmgTypeIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), dmgTypeTexture.index);
+        auto dmgTypeIconTexID = static_cast<ImTextureID>(dmgTypeIconHandle.ptr);
+
+        ImVec2 iconPosition = ImVec2(
+            dmgTypesWidth - (damageTypeIconSize.x * (i + 1)) + (Config::statBarSettings.size.x * 0.01),
+            paddingY + (Config::statBarSettings.size.y / 2.0f) - (damageTypeIconSize.y / 2.0f)
+        );
+        ImGui::SetCursorPos(iconPosition);
+        ImGui::Image(dmgTypeIconTexID, damageTypeIconSize);
+    }
+
+    paddingY += damageTypeIconSize.y + Config::statBarSpacing;
+
+    for (int i = 0; i < worseDmgTypes.size() && Config::componentVisibility.dmgTypes; i++) {
+        auto [dmgType, value] = worseDmgTypes[i];
+        TextureInfo dmgTypeTexture = GetTexture(dmgType + ".png");
+        if (!dmgTypeTexture.textureResource) {
+            continue;
+        }
+
+        D3D12_GPU_DESCRIPTOR_HANDLE dmgTypeIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), dmgTypeTexture.index);
+        auto dmgTypeIconTexID = static_cast<ImTextureID>(dmgTypeIconHandle.ptr);
+
+        ImVec2 iconPosition = ImVec2(
+            dmgTypesWidth - (damageTypeIconSize.x * (i + 1)) + (Config::statBarSettings.size.x * 0.01),
+            paddingY + (Config::statBarSettings.size.y / 2.0f) - (damageTypeIconSize.y / 2.0f)
+        );
+        ImGui::SetCursorPos(iconPosition);
+        ImGui::Image(dmgTypeIconTexID, damageTypeIconSize);
+
+        TextureInfo redArrowTexture = GetTexture("RedArrow.png");
+        if (!redArrowTexture.textureResource) {
+            continue;
+        }
+
+        D3D12_GPU_DESCRIPTOR_HANDLE redArrowIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), redArrowTexture.index);
+        auto redArrowIconTexID = static_cast<ImTextureID>(redArrowIconHandle.ptr);
+
+        ImVec2 arrowSize = ImVec2(damageTypeIconSize.x * 0.45, damageTypeIconSize.x * 0.8125 * 0.45);
+        ImVec2 arrowPosition = iconPosition;
+        arrowPosition.x += damageTypeIconSize.x - arrowSize.x + (arrowSize.x * 0.15);
+        arrowPosition.y += damageTypeIconSize.y - arrowSize.y;
+
+        std::string strValue = std::format("{:.2f}", value);
+        if (worseDmgTypeIndices.contains(strValue)) {
+            int arrowCount = worseDmgTypeIndices[strValue];
+
+            for (int i = 0; i < arrowCount; i++) {
+                arrowPosition.y -= arrowSize.y * i * 0.55;
+                ImGui::SetCursorPos(arrowPosition);
+                ImGui::Image(redArrowIconTexID, arrowSize);
+            }
+        }
     }
 
     ImGui::End();
 
     ImGui::PopStyleVar();
+
+    gRendered = true;
 }
 
 void Overlay::RenderTargets(IDXGISwapChain3 *pSwapChain) {
@@ -529,7 +709,8 @@ void Overlay::Render(IDXGISwapChain3 *pSwapChain) {
     }
 
     InitializeDXResources(pSwapChain);
-    InitializeRenderTargers(pSwapChain);
+    InitializeFileResources(device);
+    InitializeRenderTargets(pSwapChain);
 
     if (!ImGui::GetCurrentContext()) {
         device->Release();
@@ -937,27 +1118,27 @@ float Overlay::GetTargetMaxValue(BarType type, ChrIns *targetChrIns) {
 
 bool Overlay::GetBarVisibility(BarType type) {
     if (type == BarType::HP) {
-        return Config::barVisibility.hp;
+        return Config::componentVisibility.hp;
     } else if (type == BarType::FP) {
-        return Config::barVisibility.fp;
+        return Config::componentVisibility.fp;
     } else if (type == BarType::Stamina) {
-        return Config::barVisibility.stamina;
+        return Config::componentVisibility.stamina;
     } else if (type == BarType::Stagger) {
-        return Config::barVisibility.stagger;
+        return Config::componentVisibility.stagger;
     } else if (type == BarType::Poison) {
-        return Config::barVisibility.poison;
+        return Config::componentVisibility.poison;
     } else if (type == BarType::ScarletRot) {
-        return Config::barVisibility.scarletRot;
+        return Config::componentVisibility.scarletRot;
     } else if (type == BarType::Hemorrhage) {
-        return Config::barVisibility.hemorrhage;
+        return Config::componentVisibility.hemorrhage;
     } else if (type == BarType::DeathBlight) {
-        return Config::barVisibility.deathBlight;
+        return Config::componentVisibility.deathBlight;
     } else if (type == BarType::Frostbite) {
-        return Config::barVisibility.frostbite;
+        return Config::componentVisibility.frostbite;
     } else if (type == BarType::Sleep) {
-        return Config::barVisibility.sleep;
+        return Config::componentVisibility.sleep;
     } else if (type == BarType::Madness) {
-        return Config::barVisibility.madness;
+        return Config::componentVisibility.madness;
     }
 }
 
@@ -997,11 +1178,13 @@ ImFont* Overlay::LoadFont() {
         return nullptr;
     }
 
-    ImFont* font = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(pFontData, fontSize, 18.0f);
+    ImFont* font = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(pFontData, fontSize, Config::fontSize);
     if (!font) {
         Logger::Error("Failed to add font to ImGui.");
         return nullptr;
     }
+    ImGui::GetIO().Fonts->Build();
+    ImGui_ImplDX12_InvalidateDeviceObjects();
     Logger::Info("Font added to ImGui successfully.");
 
     return font;

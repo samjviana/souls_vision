@@ -9,5 +9,6 @@ Size gGameWindowSize;
 std::string gDllPath;
 std::string gConfigFilePath;
 std::atomic_bool gRunning = false;
+bool gRendered = false;
 
 }
