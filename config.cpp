@@ -188,6 +188,7 @@ void Config::SaveConfig(const std::string& configFilePath) {
     configJson["statBar"]["position"]["y"] = statBarSettings.position.y;
     configJson["statBar"]["size"]["width"] = statBarSettings.size.x;
     configJson["statBar"]["size"]["height"] = statBarSettings.size.y;
+    configJson["statBar"]["iconSize"] = statBarSettings.iconSize;
     configJson["statBar"]["hideText"] = statBarSettings.hideText;
 
     configJson["bestEffectIconSize"] = bestEffectIconSize.x;
