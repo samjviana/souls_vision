@@ -36,6 +36,7 @@ struct TextureInfo {
 struct BarSettings {
     ImVec2 position;
     ImVec2 size;
+    float iconSize;
     float currentValue = 0;
     float maxValue = 1;
     bool hideText;
