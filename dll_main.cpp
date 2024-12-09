@@ -70,6 +70,9 @@ void MainThread() {
     gRunning = true;
 
     std::string configPath = gDllPath + "\\sv_config.json";
+
+    Config::CheckConfig(configPath);
+
     auto lastWriteTime = std::filesystem::last_write_time(configPath);
 
     Logger::Info("Main thread started");
@@ -86,8 +89,7 @@ void MainThread() {
         } catch (const std::exception& e) {
             Logger::Error(std::string("Error checking config file: ") + e.what());
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(333));
     }
 }
 

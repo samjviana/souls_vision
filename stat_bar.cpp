@@ -44,46 +44,57 @@ void StatBar::Render(const BarSettings &settings, float paddingX, float paddingY
     float percentage = settings.currentValue / settings.maxValue;
 
     ImVec2 barPosition = ImVec2(
-            paddingX + (settings.size.x * 0.029f),
-            paddingY + (settings.size.y * 0.125f)
+            paddingX,
+            paddingY
     );
     ImVec2 barSize = ImVec2(
-            settings.size.x * 0.938f,
-            settings.size.y * 0.725f
+            settings.size.x,
+            settings.size.y
     );
     ImVec2 uv0 = ImVec2(0.0f, 0.0f);
     ImVec2 uv1 = ImVec2(percentage, 1.0f);
+    ImVec2 uv1Full = ImVec2(1.0f, 1.0f);
 
     ImGui::SetCursorPos(barPosition);
     ImVec4 tintColor = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
-    ImGui::Image(backgroundTexID, barSize, uv0, ImVec2(1.0f, 1.0f), tintColor);
+
+    ImGui::Image(backgroundTexID, barSize, uv0, uv1Full, tintColor);
 
     ImGui::SetCursorPos(barPosition);
     ImGui::Image(barTexID, ImVec2(barSize.x * percentage, barSize.y), uv0, uv1);
 
     ImVec2 clipMin = ImVec2(
-            settings.position.x + barPosition.x,
-            settings.position.y + barPosition.y
+            barPosition.x,
+            0
     );
     ImVec2 clipMax = ImVec2(
-            settings.position.x + settings.size.x + paddingX,
-            settings.position.y + settings.size.y + paddingY
+            barPosition.x + barSize.x * .995f,
+            99999999.f
     );
     ImGui::PushClipRect(clipMin, clipMax, true);
     ImVec2 edgeSize = ImVec2(
-            (float)settings.size.x * 0.2f,
-            (float)settings.size.y * 0.75f
+            barSize.x * 0.2f,
+            barSize.y * .8f
     );
+    float edgeXOffset = edgeSize.x * .07f;
     ImVec2 edgePosition = ImVec2(
-            barPosition.x + (barSize.x * percentage) - (edgeSize.x * 0.92f),
-            barPosition.y - (edgeSize.y * 0.1f)
+            barPosition.x + barSize.x * percentage - edgeSize.x + edgeXOffset,
+            barPosition.y + (barSize.y - edgeSize.y) * .5f
     );
     ImGui::SetCursorPos(ImVec2(edgePosition));
     ImGui::Image(edgeTexID, edgeSize);
     ImGui::PopClipRect();
 
-    ImGui::SetCursorPos(ImVec2(paddingX, paddingY));
-    ImGui::Image(frameTexID, ImVec2(settings.size.x, settings.size.y));
+    ImVec2 frameSize = ImVec2(
+        barSize.x * 1.03963f, /* Account for transparency of png. About 3.963% of width is transparent */
+        barSize.y * 1.27f   /* Account for transparency of png. About 27% of height is transparent */
+    );
+    ImVec2 framePosition = ImVec2(
+        barPosition.x - frameSize.x * .02f,
+        barPosition.y - frameSize.y * .09f
+    );
+    ImGui::SetCursorPos(framePosition);
+    ImGui::Image(frameTexID, frameSize);
 
     if (!settings.hideText) {
         ImGui::PushFont(Overlay::font_);

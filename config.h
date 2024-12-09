@@ -20,7 +20,6 @@ public:
     static BarSettings statBarSettings;
     static ImVec2 bestEffectIconSize;
     static ImVec2 dmgTypeIconSize;
-    static ImVec2 effectBarIconSize;
     static int statBarSpacing;
     static int bestEffects;
     static float fontSize;
