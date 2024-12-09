@@ -70,7 +70,7 @@ namespace souls_vision {
                 ? paddingY
                 : paddingY + barSize.y * .5f - iconSize * .5f
         );
-        float barXOffset = barSize.x * .01;
+        float barXOffset = barSize.x * .01f;
         ImVec2 barPosition = ImVec2(
             iconPosition.x + iconSize - barXOffset,
             iconSize > barSize.y
@@ -162,8 +162,6 @@ namespace souls_vision {
         /*
          * Text
          */
-        ImGui::SetCursorPos(iconPosition);
-        ImGui::Image(iconTexID, ImVec2(iconSize, iconSize));;
         if (!barSettings.hideText) {
             ImGui::PushFont(Overlay::font_);
             std::string text = std::format("{:.{}f} / {:.{}f}", barSettings.currentValue, decimals,
@@ -179,5 +177,11 @@ namespace souls_vision {
 
             ImGui::PopFont();
         }
+
+        /*
+         * Draw Icon
+         */
+        ImGui::SetCursorPos(iconPosition);
+        ImGui::Image(iconTexID, ImVec2(iconSize, iconSize));;
     }
 } // souls_vision
