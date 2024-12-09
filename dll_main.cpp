@@ -71,8 +71,7 @@ void MainThread() {
 
     std::string configPath = gDllPath + "\\sv_config.json";
 
-    Config::LoadConfig(configPath);
-    Config::configUpdated = true;
+    Config::CheckConfig(configPath);
 
     auto lastWriteTime = std::filesystem::last_write_time(configPath);
 

@@ -70,6 +70,8 @@ private:
     static std::vector<BarToRender> barsToRender_;
     static std::vector<BarToRender> effectBarsToRender_;
     static std::vector<std::string> effectsNames;
+    static std::unordered_map<BarType, std::string> textureNames;
+    static std::unordered_map<BarType, std::string> grayscaleTextureNames;
 };
 
 } // souls_vision

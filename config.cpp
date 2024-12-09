@@ -9,9 +9,8 @@ namespace souls_vision {
 
 ComponentVisibility Config::componentVisibility;
 BarSettings Config::statBarSettings;
-ImVec2 Config::bestEffectIconSize = ImVec2(39, 33);
+ImVec2 Config::bestEffectIconSize = ImVec2(33, 33);
 ImVec2 Config::dmgTypeIconSize = ImVec2(30, 30);
-ImVec2 Config::effectBarIconSize = ImVec2(56, 48);
 int Config::bestEffects = 3;
 int Config::statBarSpacing = 0;
 float Config::fontSize = 18.0f;
@@ -39,46 +38,55 @@ bool Config::CheckConfig(const std::string& configFilePath) {
         configFile >> configJson;
         configFile.close();
 
+        std::string missingFields{};
         bool updated = false;
 
         if (!configJson.contains("debug")) {
             configJson["debug"] = false;
             updated = true;
+            missingFields += " - debug";
         }
 
         if (!configJson.contains("dragOverlay")) {
             configJson["dragOverlay"] = false;
             updated = true;
+            missingFields += " - dragOverlay";
         }
 
         if (!configJson.contains("fontSize")) {
-            configJson["fontSize"] = 18.0f;
+            configJson["fontSize"] = 20.0f;
             updated = true;
+            missingFields += " - fontSize";
         }
 
         if (!configJson.contains("opacity")) {
-            configJson["opacity"] = 1.0f;
+            configJson["opacity"] = 0.89f;
             updated = true;
+            missingFields += " - opacity";
         }
 
         if (!configJson.contains("bestEffects")) {
             configJson["bestEffects"] = 3;
             updated = true;
+            missingFields += " - bestEffects";
         }
 
         if (!configJson.contains("statBarSpacing")) {
             configJson["statBarSpacing"] = 0;
             updated = true;
+            missingFields += " - statBarSpacing";
         }
 
         if (!configJson.contains("bestEffectIconSize")) {
-            configJson["bestEffectIconSize"] = 39;
+            configJson["bestEffectIconSize"] = 33;
             updated = true;
+            missingFields += " - bestEffectIconSize";
         }
 
         if (!configJson.contains("dmgTypeIconSize")) {
-            configJson["dmgTypeIconSize"] = 30;
+            configJson["dmgTypeIconSize"] = 33;
             updated = true;
+            missingFields += " - dmgTypeIconSize";
         }
 
         if (!configJson.contains("componentVisibility") && !configJson.contains("barVisibility")) {
@@ -100,36 +108,44 @@ bool Config::CheckConfig(const std::string& configFilePath) {
                     {"neutralDmgTypes", false}
             };
             updated = true;
+            missingFields += " - componentVisibility";
         }
 
         if (!configJson.contains("statBar")) {
             configJson["statBar"] = {
-                    {"position", {{"x", gGameWindowSize.width - 555 - 5}, {"y", 10}}},
-                    {"size", {{"width", 555}, {"height", 40}}},
+                    {"position", {{"x", gGameWindowSize.width - 500 - 5}, {"y", 10}}},
+                    {"size", {{"width", 500}, {"height", 33}}},
+                    {"iconSize", 36},
                     {"hideText", false}
             };
             updated = true;
+            missingFields += " - statBar";
         } else {
             if (!configJson["statBar"].contains("position")) {
-                configJson["statBar"]["position"] = {{"x", gGameWindowSize.width - 555 - 5}, {"y", 10}};
+                configJson["statBar"]["position"] = {{"x", gGameWindowSize.width - 500 - 5}, {"y", 10}};
                 updated = true;
+                missingFields += " - statBar.position";
             }
             if (!configJson["statBar"].contains("size")) {
-                configJson["statBar"]["size"] = {{"width", 555}, {"height", 40}};
+                configJson["statBar"]["size"] = {{"width", 500}, {"height", 33}};
                 updated = true;
+                missingFields += " - statBar.size";
             }
             if (!configJson["statBar"].contains("iconSize")) {
-                configJson["statBar"]["iconSize"] = 68;
+                configJson["statBar"]["iconSize"] = 36;
                 updated = true;
+                missingFields += " - statBar.iconSize";
             }
             if (!configJson["statBar"].contains("hideText")) {
                 configJson["statBar"]["hideText"] = false;
                 updated = true;
+                missingFields += " - statBar.hideText";
             }
         }
 
         if (updated) {
             Logger::Info("Config file was missing fields. Updating...");
+            Logger::Info("Missing Fields" + missingFields);
             std::ofstream outFile(configFilePath);
             if (!outFile.is_open()) {
                 throw std::runtime_error("Failed to write to sv_config.json");
@@ -225,10 +241,8 @@ void Config::LoadConfig(const std::string& configFilePath) {
         }
         opacity = configJson["opacity"];
         bestEffects = configJson["bestEffects"];
-        bestEffectIconSize.x = configJson["bestEffectIconSize"];
-        bestEffectIconSize.y = bestEffectIconSize.x * 0.85f;
-        dmgTypeIconSize.x = configJson["dmgTypeIconSize"];
-        dmgTypeIconSize.y = dmgTypeIconSize.x;
+        bestEffectIconSize.x = bestEffectIconSize.y = configJson["bestEffectIconSize"];
+        dmgTypeIconSize.x = dmgTypeIconSize.y = configJson["dmgTypeIconSize"];
         statBarSpacing = configJson["statBarSpacing"];
 
         componentVisibility = LoadComponentVisibility(configJson);
@@ -237,9 +251,6 @@ void Config::LoadConfig(const std::string& configFilePath) {
         statBarSettings.size = ImVec2(configJson["statBar"]["size"]["width"], configJson["statBar"]["size"]["height"]);
         statBarSettings.iconSize = configJson["statBar"]["iconSize"];
         statBarSettings.hideText = configJson["statBar"]["hideText"];
-
-        effectBarIconSize = ImVec2(statBarSettings.iconSize, statBarSettings.iconSize * 0.85f);
-
     } catch (const std::exception& e) {
         Logger::Error(std::string("Config::LoadConfig - Error: ") + e.what());
     }
