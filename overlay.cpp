@@ -469,10 +469,14 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
             windowWidth,
             statBarsheight + bestEffectHeight + effectBarsHeight
     );
-    ImGui::SetNextWindowPos(windowPosition);
+    if (Config::dragOverlay) {
+        ImGui::SetNextWindowPos(windowPosition, ImGuiCond_Once);
+    } else {
+        ImGui::SetNextWindowPos(windowPosition);
+    }
     ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y));
 
-    static ImVec2 previousPosition = Config::statBarSettings.position;
+    static ImVec2 previousPosition = windowPosition;
 
     if (!ImGui::Begin("Stat Window", nullptr, windowFlags)) {
         return;
@@ -481,7 +485,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         ImVec2 newPosition = Config::statBarSettings.position;
         newPosition.x -= dmgTypesWidth;
         ImGui::SetWindowPos(newPosition);
-        previousPosition = Config::statBarSettings.position;
+        previousPosition = newPosition;
         Config::configUpdated = false;
     }
 
@@ -489,6 +493,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
     if (Config::dragOverlay && (currentPosition.x != previousPosition.x || currentPosition.y != previousPosition.y)) {
         Config::statBarSettings.position = currentPosition;
+        Config::statBarSettings.position.x += dmgTypesWidth;
         previousPosition = currentPosition;
         Config::SaveConfig(gConfigFilePath);
     }

@@ -64,6 +64,8 @@ Add the `SoulsVision.dll` and `sv_assets` to the `mods` folder from [Elden Mod L
 
 ## Changelog
 * **[v0.3.2] - 10-12-2024**
+  * Fixed a bug making the overlay shift infinitely to the left when `dragOverlay` is set to `true`
+* **[v0.3.2] - 10-12-2024**
   * Fixed the bug where the horizontal position of the overlay was being shifted when switching between targets
 * **[v0.3.1] - 08-12-2024**
   * Fixed build bug where the assets were not being updated
