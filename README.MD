@@ -63,6 +63,10 @@ Souls Vision was developed and tested on version **1.16**, it is expected to wor
 Add the `SoulsVision.dll` and `sv_assets` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.3.2] - 10-12-2024**
+  * Fixed the bug where the horizontal position of the overlay was being shifted when switching between targets
+* **[v0.3.1] - 08-12-2024**
+  * Fixed build bug where the assets were not being updated
 * **[v0.3.0] - 07-12-2024**
   * Added the Weak, Neutral and Resistant damage types to the overlay
   * Added more customization to the overlay components
