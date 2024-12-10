@@ -25,7 +25,6 @@ extern Size gGameWindowSize;
 extern std::string gDllPath;
 extern std::string gConfigFilePath;
 extern std::atomic_bool gRunning;
-extern bool gRendered;
 
 }
 

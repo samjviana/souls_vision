@@ -456,9 +456,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
     float dmgTypesWidth = (Config::dmgTypeIconSize.x * maxIconLength);
     float windowWidth = Config::statBarSettings.size.x + dmgTypesWidth;
     ImVec2 windowPosition = Config::statBarSettings.position;
-    if (gRendered) {
-        windowPosition.x -= dmgTypesWidth;
-    }
+    windowPosition.x -= dmgTypesWidth;
 
     float statBarsheight = ((Config::statBarSettings.size.y - 10.0f + Config::statBarSpacing) * statBarsToRender.size() + (10.0f + Config::statBarSpacing));
     float bestEffectHeight = 0;
@@ -466,12 +464,12 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         bestEffectHeight = Config::bestEffectIconSize.y - 5.0f + (Config::statBarSpacing * 0.5f);
     }
     float effectBarsHeight = (Config::effectBarIconSize.y + Config::statBarSpacing) * effectBarsToRender.size();
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); // Remove o padding
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImVec2 windowSize = ImVec2(
             windowWidth,
             statBarsheight + bestEffectHeight + effectBarsHeight
     );
-    ImGui::SetNextWindowPos(windowPosition, ImGuiCond_Once);
+    ImGui::SetNextWindowPos(windowPosition);
     ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y));
 
     static ImVec2 previousPosition = Config::statBarSettings.position;
@@ -480,7 +478,9 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         return;
     }
     if (Config::configUpdated) {
-        ImGui::SetWindowPos(Config::statBarSettings.position);
+        ImVec2 newPosition = Config::statBarSettings.position;
+        newPosition.x -= dmgTypesWidth;
+        ImGui::SetWindowPos(newPosition);
         previousPosition = Config::statBarSettings.position;
         Config::configUpdated = false;
     }
@@ -664,8 +664,6 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
     ImGui::End();
 
     ImGui::PopStyleVar();
-
-    gRendered = true;
 }
 
 void Overlay::RenderTargets(IDXGISwapChain3 *pSwapChain) {

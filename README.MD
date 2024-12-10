@@ -1,5 +1,5 @@
 # Souls Vision
-Souls Vision adds a customizable overlay to the top-right corner of the screen (by default), showing additional information about the currently targeted enemy, including HP, Stamina, Stance, and Buildup bars for effects (like Poison and Frostbite).
+Souls Vision adds a customizable overlay to the top-right corner of the screen (by default), showing additional information about the currently targeted enemy, including HP, Stamina, Stance, Buildup bars for effects (like Poison and Frostbite) and the best damage types to use against the enemy (Magic, Fire, etc.). The overlay is draggable and can be customized to show only the information you want.
 
 ## Features
 * **Stat Bars**: Shows the current and maximum HP, FP, Stamina, and Stagger/Poise of the targeted enemy.
@@ -10,7 +10,7 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
   * The neutral damage types are hidden by default, but can be shown by changing the config file.
 * **Buildup Bars**: Shows the current buildup of effects like Poison, Scarlet Rot, Hemorrhage, Death Blight, Frostbite, Sleep, and Madness.
   * Only appear if the enemy has some effect being applied to it.
-* **Customizable**: Highly customizable, with options to change the positions, sizes, and visibility of the bars.
+* **Customizable**: Highly customizable, with options to change the positions, sizes, and visibility of the components.
   * The config file is generated the first time the game is opened with the mod, and it is reloaded automatically every time it is edited.
 * **Draggable Overlay**: The overlay can be dragged around the screen by clicking and dragging it.
   * The parameter `dragOverlay` must be set to `true` in the config file to enable this feature.
@@ -57,7 +57,7 @@ The first time the game opens with the mod it will generate a default sv_config.
 </details>
 
 ## Compatibility
-Souls Vision was developed and tested on version 1.16, it is expected to work with previous and future versions as long as the game’s internal structures remain unchanged since it relies on memory reading. No incompatibilities with other mods are anticipated, but conflicts could arise if another mod hooks the same memory locations. Either way, let me know if any kind of error occurs.
+Souls Vision was developed and tested on version **1.16**, it is expected to work with previous and future versions as long as the game’s internal structures remain unchanged since it relies on memory reading. Some incompatibilities with mods that deal with game's FPS are expected as Souls Vision is tied to the game's rendering methods. Either way, let me know if any kind of error occurs.
 
 ## Installation
 Add the `SoulsVision.dll` and `sv_assets` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
