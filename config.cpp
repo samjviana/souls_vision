@@ -12,7 +12,7 @@ BarSettings Config::statBarSettings;
 ImVec2 Config::bestEffectIconSize = ImVec2(33, 33);
 ImVec2 Config::dmgTypeIconSize = ImVec2(30, 30);
 int Config::bestEffects = 3;
-int Config::statBarSpacing = 0;
+float Config::statBarSpacing = 0;
 float Config::fontSize = 18.0f;
 float Config::opacity;
 bool Config::debug = false;

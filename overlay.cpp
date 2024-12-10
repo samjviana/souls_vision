@@ -85,6 +85,9 @@ std::unordered_map<BarType, std::string> Overlay::grayscaleTextureNames = {
 };
 
 void Overlay::Initialize() {
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+
     HookHelper::SetRenderCallback(Render);
     HookHelper::SetCleanupCallback(CleanupRenderTargets);
 
@@ -415,8 +418,8 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
             | std::views::transform([](const std::pair<std::string, float>& pair) { return pair; })
             | std::ranges::to<std::vector>();
 
-    int maxDamageIconRowLen = std::max((int)bestDmgTypes.size(), (int)worseDmgTypes.size());
-    maxDamageIconRowLen = std::max(maxDamageIconRowLen, (int)neutralDmgTypes.size());
+    int maxDamageIconRowSize = std::max(static_cast<int>(bestDmgTypes.size()), static_cast<int>(worseDmgTypes.size()));
+    maxDamageIconRowSize = std::max(maxDamageIconRowSize, static_cast<int>(neutralDmgTypes.size()));
 
     std::vector<BarType> immuneEffects = effectBars_
             | std::views::filter([&targetChrIns](const EffectBar& bar) { return GetTargetMaxValue(bar.type, targetChrIns) >= 999; })
@@ -479,20 +482,20 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         windowFlags |= ImGuiWindowFlags_NoResize;
     }
 
-    float dmgTypesWidth = Config::dmgTypeIconSize.x * maxDamageIconRowLen * 1.05;
+    float dmgTypesWidth = Config::dmgTypeIconSize.x * (float)maxDamageIconRowSize * 1.05f;
     float windowWidth = Config::statBarSettings.size.x + dmgTypesWidth;
     ImVec2 windowPosition = Config::statBarSettings.position;
     if (gRendered) {
         windowPosition.x -= dmgTypesWidth;
     }
 
-    float statBarsHeight = (Config::statBarSettings.size.y + Config::statBarSpacing) * statBarsToRender.size();
+    float statBarsHeight = (Config::statBarSettings.size.y + Config::statBarSpacing) * (float)statBarsToRender.size();
     float bestEffectHeight = 0;
     if (Config::bestEffects > 0) {
         bestEffectHeight = Config::bestEffectIconSize.y + Config::statBarSpacing;
     }
     float singleEffectBarHeight = std::max(Config::statBarSettings.iconSize, Config::statBarSettings.size.y);
-    float effectBarsHeight = (singleEffectBarHeight + Config::statBarSpacing) * effectBarsToRender.size();
+    float effectBarsHeight = (singleEffectBarHeight + Config::statBarSpacing) * (float)effectBarsToRender.size();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); // Remove o padding
     ImVec2 windowSize = ImVec2(
             windowWidth,
@@ -542,7 +545,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
         ImVec2 iconSize = Config::bestEffectIconSize;
         ImVec2 iconPosition = ImVec2(
-            dmgTypesWidth + (Config::bestEffectIconSize.x * i) + 5.0f,
+            dmgTypesWidth + (Config::bestEffectIconSize.x * (float)i) + 5.0f,
             paddingY + Config::statBarSpacing
         );
         ImGui::SetCursorPos(iconPosition);
@@ -561,7 +564,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
         ImVec2 iconSize = Config::bestEffectIconSize;
         ImVec2 iconPosition = ImVec2(
-            (Config::statBarSettings.size.x + dmgTypesWidth) - ((immuneEffects.size() - i) * Config::bestEffectIconSize.x) - 10.0f,
+            (Config::statBarSettings.size.x + dmgTypesWidth) - ((float)(immuneEffects.size() - i) * Config::bestEffectIconSize.x) - 10.0f,
             paddingY + Config::statBarSpacing
         );
         ImGui::SetCursorPos(iconPosition);
@@ -596,7 +599,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         auto dmgTypeIconTexID = static_cast<ImTextureID>(dmgTypeIconHandle.ptr);
 
         ImVec2 iconPosition = ImVec2(
-            damageTypeIconSize.x * i,
+            damageTypeIconSize.x * (float)i,
             (Config::statBarSettings.size.y * .5f) - (damageTypeIconSize.y * .5f)
         );
         ImGui::SetCursorPos(iconPosition);
@@ -610,17 +613,17 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         D3D12_GPU_DESCRIPTOR_HANDLE greenArrowIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), greenArrowTexture.index);
         auto greenArrowIconTexID = static_cast<ImTextureID>(greenArrowIconHandle.ptr);
 
-        ImVec2 arrowSize = ImVec2(damageTypeIconSize.x * 0.45, damageTypeIconSize.x * 0.8125 * 0.45);
+        ImVec2 arrowSize = ImVec2(damageTypeIconSize.x * 0.45f, damageTypeIconSize.x * 0.8125f * 0.45f);
         ImVec2 arrowPosition = iconPosition;
-        arrowPosition.x += damageTypeIconSize.x - arrowSize.x + (arrowSize.x * 0.15);
+        arrowPosition.x += damageTypeIconSize.x - arrowSize.x + (arrowSize.x * 0.15f);
         arrowPosition.y += damageTypeIconSize.y - arrowSize.y;
 
         std::string strValue = std::format("{:.2f}", value);
         if (bestDmgTypeIndices.contains(strValue)) {
             int arrowCount = bestDmgTypeIndices[strValue];
 
-            for (int i = 0; i < arrowCount; i++) {
-                arrowPosition.y -= arrowSize.y * i * 0.55;
+            for (int j = 0; j < arrowCount; j++) {
+                arrowPosition.y -= arrowSize.y * (float)j * 0.55f;
                 ImGui::SetCursorPos(arrowPosition);
                 ImGui::Image(greenArrowIconTexID, arrowSize);
             }
@@ -640,7 +643,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         auto dmgTypeIconTexID = static_cast<ImTextureID>(dmgTypeIconHandle.ptr);
 
         ImVec2 iconPosition = ImVec2(
-            damageTypeIconSize.x * i,
+            damageTypeIconSize.x * float(i),
             paddingY + (Config::statBarSettings.size.y * .5f) - (damageTypeIconSize.y * .5f)
         );
         ImGui::SetCursorPos(iconPosition);
@@ -660,7 +663,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         auto dmgTypeIconTexID = static_cast<ImTextureID>(dmgTypeIconHandle.ptr);
 
         ImVec2 iconPosition = ImVec2(
-            damageTypeIconSize.x * i,
+            damageTypeIconSize.x * (float)i,
             paddingY + (Config::statBarSettings.size.y * .5f) - (damageTypeIconSize.y * .5f)
         );
         ImGui::SetCursorPos(iconPosition);
@@ -674,17 +677,17 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         D3D12_GPU_DESCRIPTOR_HANDLE redArrowIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), redArrowTexture.index);
         auto redArrowIconTexID = static_cast<ImTextureID>(redArrowIconHandle.ptr);
 
-        ImVec2 arrowSize = ImVec2(damageTypeIconSize.x * 0.45, damageTypeIconSize.x * 0.8125 * 0.45);
+        ImVec2 arrowSize = ImVec2(damageTypeIconSize.x * 0.45f, damageTypeIconSize.x * 0.8125f * 0.45f);
         ImVec2 arrowPosition = iconPosition;
-        arrowPosition.x += damageTypeIconSize.x - arrowSize.x + (arrowSize.x * 0.15);
+        arrowPosition.x += damageTypeIconSize.x - arrowSize.x + (arrowSize.x * 0.15f);
         arrowPosition.y += damageTypeIconSize.y - arrowSize.y;
 
         std::string strValue = std::format("{:.2f}", value);
         if (worseDmgTypeIndices.contains(strValue)) {
             int arrowCount = worseDmgTypeIndices[strValue];
 
-            for (int i = 0; i < arrowCount; i++) {
-                arrowPosition.y -= arrowSize.y * i * 0.55;
+            for (int j = 0; j < arrowCount; j++) {
+                arrowPosition.y -= arrowSize.y * (float)j * 0.55f;
                 ImGui::SetCursorPos(arrowPosition);
                 ImGui::Image(redArrowIconTexID, arrowSize);
             }
@@ -866,7 +869,7 @@ bool Overlay::LoadTextureFromMemory(const void* data, size_t data_size, ID3D12De
                 unsigned char b = image_data[index + 2];
 
                 // Compute grayscale value using luminance formula
-                unsigned char gray = static_cast<unsigned char>(0.299f * r + 0.587f * g + 0.114f * b);
+                auto gray = static_cast<unsigned char>(0.299f * r + 0.587f * g + 0.114f * b);
 
                 image_data[index] = gray;
                 image_data[index + 1] = gray;
@@ -1030,7 +1033,7 @@ bool Overlay::LoadTextureFromMemory(const void* data, size_t data_size, ID3D12De
 
 TextureInfo Overlay::GetTexture(const std::string &textureName) {
     // Safely accesses a texture from its name
-    if (textureMap_.find(textureName) != textureMap_.end()) {
+    if (textureMap_.contains(textureName)) {
         return textureMap_[textureName];
     }
 
@@ -1060,40 +1063,42 @@ float Overlay::GetTargetValue(BarType type, ChrIns *targetChrIns) {
     if (!targetChrIns) {
         return 0;
     }
+    int val = 0;
     switch (type) {
-        case BarType::HP: return targetChrIns->moduleBag->statModule->hp;
-        case BarType::FP: return targetChrIns->moduleBag->statModule->fp;
-        case BarType::Stamina: return targetChrIns->moduleBag->statModule->stamina;
-        case BarType::Stagger: return targetChrIns->moduleBag->superArmorModule->stagger;
-        case BarType::Poison: return targetChrIns->moduleBag->resistModule->poisonResist;
-        case BarType::ScarletRot: return targetChrIns->moduleBag->resistModule->scarletRotResist;
-        case BarType::Hemorrhage: return targetChrIns->moduleBag->resistModule->hemorrhageResist;
-        case BarType::DeathBlight: return targetChrIns->moduleBag->resistModule->deathBlightResist;
-        case BarType::Frostbite: return targetChrIns->moduleBag->resistModule->frostbiteResist;
-        case BarType::Sleep: return targetChrIns->moduleBag->resistModule->sleepResist;
-        case BarType::Madness: return targetChrIns->moduleBag->resistModule->madnessResist;
+        case BarType::HP: val = targetChrIns->moduleBag->statModule->hp; break;
+        case BarType::FP: val = targetChrIns->moduleBag->statModule->fp; break;
+        case BarType::Stamina: val = targetChrIns->moduleBag->statModule->stamina; break;
+        case BarType::Stagger: val = (int)targetChrIns->moduleBag->superArmorModule->stagger; break;
+        case BarType::Poison: val = targetChrIns->moduleBag->resistModule->poisonResist; break;
+        case BarType::ScarletRot: val = targetChrIns->moduleBag->resistModule->scarletRotResist; break;
+        case BarType::Hemorrhage: val = targetChrIns->moduleBag->resistModule->hemorrhageResist; break;
+        case BarType::DeathBlight: val = targetChrIns->moduleBag->resistModule->deathBlightResist; break;
+        case BarType::Frostbite: val = targetChrIns->moduleBag->resistModule->frostbiteResist; break;
+        case BarType::Sleep: val = targetChrIns->moduleBag->resistModule->sleepResist; break;
+        case BarType::Madness: val = targetChrIns->moduleBag->resistModule->madnessResist; break;
     }
-    return 0;
+    return static_cast<float>(val);
 }
 
 float Overlay::GetTargetMaxValue(BarType type, ChrIns *targetChrIns) {
     if (!targetChrIns) {
         return 0;
     }
+    int val = 0;
     switch (type) {
-        case BarType::HP: return targetChrIns->moduleBag->statModule->maxHp;
-        case BarType::FP: return targetChrIns->moduleBag->statModule->maxFp;
-        case BarType::Stamina: return targetChrIns->moduleBag->statModule->maxStamina;
-        case BarType::Stagger: return targetChrIns->moduleBag->superArmorModule->maxStagger;
-        case BarType::Poison: return targetChrIns->moduleBag->resistModule->maxPoisonResist;
-        case BarType::ScarletRot: return targetChrIns->moduleBag->resistModule->maxScarletRotResist;
-        case BarType::Hemorrhage: return targetChrIns->moduleBag->resistModule->maxHemorrhageResist;
-        case BarType::DeathBlight: return targetChrIns->moduleBag->resistModule->maxDeathBlightResist;
-        case BarType::Frostbite: return targetChrIns->moduleBag->resistModule->maxFrostbiteResist;
-        case BarType::Sleep: return targetChrIns->moduleBag->resistModule->maxSleepResist;
-        case BarType::Madness: return targetChrIns->moduleBag->resistModule->maxMadnessResist;
+        case BarType::HP: val = targetChrIns->moduleBag->statModule->maxHp; break;
+        case BarType::FP: val = targetChrIns->moduleBag->statModule->maxFp; break;
+        case BarType::Stamina: val = targetChrIns->moduleBag->statModule->maxStamina; break;
+        case BarType::Stagger: val = (int)targetChrIns->moduleBag->superArmorModule->maxStagger; break;
+        case BarType::Poison: val = targetChrIns->moduleBag->resistModule->maxPoisonResist; break;
+        case BarType::ScarletRot: val = targetChrIns->moduleBag->resistModule->maxScarletRotResist; break;
+        case BarType::Hemorrhage: val = targetChrIns->moduleBag->resistModule->maxHemorrhageResist; break;
+        case BarType::DeathBlight: val = targetChrIns->moduleBag->resistModule->maxDeathBlightResist; break;
+        case BarType::Frostbite: val = targetChrIns->moduleBag->resistModule->maxFrostbiteResist; break;
+        case BarType::Sleep: val = targetChrIns->moduleBag->resistModule->maxSleepResist; break;
+        case BarType::Madness: val = targetChrIns->moduleBag->resistModule->maxMadnessResist; break;
     }
-    return 0;
+    return static_cast<float>(val);
 }
 
 bool Overlay::GetBarVisibility(BarType type) {
@@ -1114,7 +1119,7 @@ bool Overlay::GetBarVisibility(BarType type) {
 }
 
 ImVec4 Overlay::GetColor0To1(int r, int g, int b, int a) {
-    return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+    return {(float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, (float)a / 255.0f};
 }
 
 ImFont* Overlay::LoadFont() {
@@ -1149,7 +1154,7 @@ ImFont* Overlay::LoadFont() {
         return nullptr;
     }
 
-    ImFont* font = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(pFontData, fontSize, Config::fontSize);
+    ImFont* font = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(pFontData, static_cast<int>(fontSize), Config::fontSize);
     if (!font) {
         Logger::Error("Failed to add font to ImGui.");
         return nullptr;

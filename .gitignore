@@ -1,3 +1,7 @@
 cmake-build-debug-visual-studio
 cmake-build-release-visual-studio
-/fonts/Agmena W1G.ttf
+cmake-build-relwithdebinfo
+cmake-build-debug
+cmake-build-release
+*.ttf
+*.log
