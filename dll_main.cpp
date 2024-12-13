@@ -51,6 +51,7 @@ DWORD WINAPI Setup(LPVOID lpParam) {
     HookHelper::Hook();
     Overlay::Initialize();
 
+    Logger::Info("Starting SoulsVision main loop...");
     MainThread();
 
     Cleanup();

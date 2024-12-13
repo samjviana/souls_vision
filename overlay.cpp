@@ -86,8 +86,6 @@ std::unordered_map<BarType, std::string> Overlay::grayscaleTextureNames = {
 
 void Overlay::Initialize() {
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-
     HookHelper::SetRenderCallback(Render);
     HookHelper::SetCleanupCallback(CleanupRenderTargets);
 
@@ -453,7 +451,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         statBarsToRender.emplace_back(bar, settings, decimals);
     }
 
-    std::vector<std::tuple<EffectBar, BarSettings, int>> effectBarsToRender = {};
+    std::vector<std::tuple<EffectBar, BarSettings, int> > effectBarsToRender = {};
     for (auto bar : effectBars_) {
         bool show = GetBarVisibility(bar.type);
         if (!show) {
@@ -461,7 +459,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         }
 
         BarSettings settings = Config::statBarSettings;
-        settings.size.y *= .5f;
+        settings.size.y *= .75f;
         settings.maxValue = GetTargetMaxValue(bar.type, targetChrIns);
         settings.currentValue = settings.maxValue - GetTargetValue(bar.type, targetChrIns);
         int decimals = 0;
@@ -578,6 +576,12 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         paddingY += bestEffectHeight + Config::statBarSpacing;
     }
 
+    std::ranges::sort(effectBarsToRender, [](const std::tuple<EffectBar, BarSettings, int>& t1,
+                                             const std::tuple<EffectBar, BarSettings, int>& t2) {
+        auto bar1 = std::get<BarSettings>(t1);
+        auto bar2 = std::get<BarSettings>(t2);
+        return bar1.currentValue / bar1.maxValue < bar2.currentValue / bar2.maxValue;
+    });
     for (int i = 0; i < effectBarsToRender.size(); i++) {
         auto [bar, settings, decimals] = effectBarsToRender[i];
         float innerPaddingY = paddingY + static_cast<float>(i) * (singleEffectBarHeight + Config::statBarSpacing);
