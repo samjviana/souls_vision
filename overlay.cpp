@@ -234,7 +234,7 @@ void Overlay::InitializeFileResources(ID3D12Device* device) {
     }
 
     if (textureMap_.empty() || Config::opacityUpdated) {
-        LoadAllTextures(device);
+        LoadAllTexturesResources(device);
         Config::opacityUpdated = false;
     }
 }
@@ -745,79 +745,6 @@ void Overlay::CleanupRenderTargets() {
     renderTargets_ = nullptr;
 }
 
-void Overlay::LoadAllTextures(ID3D12Device* device) {
-    const std::string folderPath = gDllPath + "\\sv_assets\\";
-
-    if (!std::filesystem::exists(folderPath)) {
-        Logger::Error("Folder not found: " + folderPath);
-        return;
-    }
-
-    D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle = srvHeap_->GetCPUDescriptorHandleForHeapStart();
-    SIZE_T descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    srvCpuHandle.ptr += descriptorSize;  // Adjust pointer to start at index 1
-
-    int textureIndex = 1;
-    for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
-        if (!entry.is_regular_file()) {
-            continue;
-        }
-
-        auto filePath = entry.path().string();
-        auto fileName = entry.path().filename().string();
-
-        // This might be able to handle .dds files, but I'll use only .png and .jpg for now
-        if (filePath.ends_with(".png") || filePath.ends_with(".jpg")) {
-            TextureInfo textureInfo = {};
-            if (LoadTextureFromFile(filePath.c_str(), device, srvCpuHandle, &textureInfo)) {
-                textureInfo.index = textureIndex++;
-                textureMap_[fileName] = textureInfo;
-                Logger::Info(std::format("Loaded texture: {}", fileName));
-
-                srvCpuHandle.ptr += descriptorSize;
-
-                if (std::ranges::any_of(effectsNames, [&fileName](const std::string& effect) { return fileName.ends_with(effect + ".png") || fileName.ends_with(effect + ".jpg"); })) {
-                    TextureInfo grayscaleTextureInfo = {};
-                    if (LoadTextureFromFile(filePath.c_str(), device, srvCpuHandle, &grayscaleTextureInfo, true)) {
-                        grayscaleTextureInfo.index = textureIndex++;
-                        fileName = fileName.substr(0, fileName.find_last_of('.')) + "GrayScale" + fileName.substr(fileName.find_last_of('.'));
-                        textureMap_[fileName] = grayscaleTextureInfo;
-                        Logger::Info(std::format("Loaded texture: {}", fileName));
-
-                        srvCpuHandle.ptr += descriptorSize;
-                    }
-                }
-            } else {
-                Logger::Error("Texture " + fileName + " failed to load");
-            }
-        }
-    }
-}
-
-bool Overlay::LoadTextureFromFile(const char* fileName, ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle, TextureInfo* textureInfo, bool grayscale) {
-    FILE* file = fopen(fileName, "rb");
-    if (!file) {
-        Logger::Error("Failed to open file: " + std::string(fileName));
-        return false;
-    }
-
-    fseek(file, 0, SEEK_END);
-    size_t fileSize = ftell(file);
-    if (fileSize == -1) {
-        Logger::Error("Failed to get file size: " + std::string(fileName));
-        fclose(file);
-        return false;
-    }
-
-    fseek(file, 0, SEEK_SET);
-    void* fileData = IM_ALLOC(fileSize);
-    fread(fileData, 1, fileSize, file);
-    bool ret = LoadTextureFromMemory(fileData, fileSize, device, srvCpuHandle, textureInfo, Config::opacity, grayscale);
-    IM_FREE(fileData);
-
-    return ret;
-}
-
 bool Overlay::LoadTextureFromMemory(const void* data, size_t data_size, ID3D12Device* d3d_device, D3D12_CPU_DESCRIPTOR_HANDLE srv_cpu_handle, TextureInfo* textureInfo, float opacity, bool grayscale) {
     int image_width = 0;
     int image_height = 0;
@@ -1051,7 +978,98 @@ std::string Overlay::GetTextureNameForType(BarType type, bool grayscale) {
     return textureNames[type];
 }
 
-LRESULT WINAPI Overlay::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    bool Overlay::LoadTextureFromResource(int resourceID, HMODULE module, ID3D12Device *device, D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle, TextureInfo *textureInfo, bool grayscale) {
+        HRSRC resource = FindResource(module, MAKEINTRESOURCE(resourceID), RT_RCDATA);
+        if (!resource) {
+            Logger::Error(&"Failed to find resource: " [ resourceID ]);
+            return false;
+        }
+
+        HGLOBAL resourceData = LoadResource(module, resource);
+        if (!resourceData) {
+            Logger::Error(&"Failed to load resource: " [ resourceID ]);
+            return false;
+        }
+
+        void *data = LockResource(resourceData);
+        if (!data) {
+            Logger::Error(&"Failed to lock resource: " [ resourceID ]);
+            return false;
+        }
+
+        size_t size = SizeofResource(module, resource);
+        if (size == 0) {
+            Logger::Error(&"Failed to get size of resource: " [ resourceID ]);
+            return false;
+        }
+
+        bool ret = LoadTextureFromMemory(data, size, device, srvCpuHandle, textureInfo, Config::opacity, grayscale);
+
+        return ret;
+    }
+
+    void Overlay::LoadAllTexturesResources(ID3D12Device *device) {
+        std::map<std::string, int> resourceMap = {
+                {"Bar.png", IDR_BAR_PNG},
+                {"BarBG.png", IDR_BAR_BG_PNG},
+                {"BarEdge.png", IDR_BAR_EDGE_PNG},
+                {"BarEdge2.png", IDR_BAR_EDGE_2_PNG},
+                {"Blue.png", IDR_BLUE_PNG},
+                {"BuddyWaku.png", IDR_BUDDY_WAKU_PNG},
+                {"ConditionWaku.png", IDR_CONDITION_WAKU_PNG},
+                {"DeathBlight.png", IDR_DEATHBLIGHT_PNG},
+                {"Fire.png", IDR_FIRE_PNG},
+                {"Frostbite.png", IDR_FROSTBITE_PNG},
+                {"Green.png", IDR_GREEN_PNG},
+                {"GreenArrow.png", IDR_GREEN_ARROW_PNG},
+                {"Hemorrhage.png", IDR_HEMORRHAGE_PNG},
+                {"Holy.png", IDR_HOLY_PNG},
+                {"Lightning.png", IDE_LIGHTNING_PNG},
+                {"Madness.png", IDR_MADNESS_PNG},
+                {"Magic.png", IDR_MAGIC_PNG},
+                {"Poison.png", IDR_POISON_PNG},
+                {"Red.png", IDR_RED_PNG},
+                {"RedArrow.png", IDE_RED_ARROW_PNG},
+                {"ScarletRot.png", IDR_SCARLET_ROT_PNG},
+                {"Sleep.png", IDR_SLEEP_PNG},
+                {"Yellow.png", IDR_YELLOW_PNG}
+        };
+
+        D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle = srvHeap_->GetCPUDescriptorHandleForHeapStart();
+        SIZE_T descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        srvCpuHandle.ptr += descriptorSize;
+
+        int textureIndex = 1;
+        for (const auto& [fileName, resourceID] : resourceMap) {
+            TextureInfo textureInfo = {};
+
+            if (LoadTextureFromResource(resourceID, gModule, device, srvCpuHandle, &textureInfo)) {
+                textureInfo.index = textureIndex++;
+                textureMap_[fileName] = textureInfo;
+                Logger::Info(std::format("Loaded texture: {}", fileName));
+
+                srvCpuHandle.ptr += descriptorSize;
+
+                if (std::ranges::any_of(effectsNames, [&fileName](const std::string& effect) {
+                    return fileName.find(effect) != std::string::npos;
+                })) {
+                    TextureInfo grayscaleTextureInfo = {};
+                    if (LoadTextureFromResource(resourceID, gModule, device, srvCpuHandle, &grayscaleTextureInfo, true)) {
+                        grayscaleTextureInfo.index = textureIndex++;
+                        std::string grayFileName = fileName.substr(0, fileName.find_last_of('.')) + "GrayScale.png";
+                        textureMap_[grayFileName] = grayscaleTextureInfo;
+                        Logger::Info(std::format("Loaded texture: {}", grayFileName));
+
+                        srvCpuHandle.ptr += descriptorSize;
+                    }
+                }
+            } else {
+                Logger::Error(std::format("Texture {} failed to load", fileName));
+            }
+        }
+    }
+
+    LRESULT WINAPI Overlay::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     if (ImGui::GetCurrentContext()) {
         ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
     }

@@ -40,8 +40,8 @@ private:
     static void DrawStatBars(ID3D12Device* device);
     static void RenderTargets(IDXGISwapChain3 *pSwapChain);
     static inline int GetCorrectDXGIFormat(int eCurrentFormat);
-    static void LoadAllTextures(ID3D12Device* device);
-    static bool LoadTextureFromFile(const char* fileName, ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle, TextureInfo* textureInfo, bool grayscale = false);
+    static void LoadAllTexturesResources(ID3D12Device* device);
+    static bool LoadTextureFromResource(int resourceID, HMODULE module, ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle, TextureInfo* textureInfo, bool grayscale = false);
     static bool LoadTextureFromMemory(const void* data, size_t data_size, ID3D12Device* d3d_device, D3D12_CPU_DESCRIPTOR_HANDLE srv_cpu_handle, TextureInfo* textureInfo, float opacity = 1.0f, bool grayscale = false);
     static int GetTextureCount();
     static std::string GetTextureNameForType(BarType type, bool grayscale = false);

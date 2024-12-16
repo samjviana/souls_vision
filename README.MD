@@ -60,9 +60,11 @@ The first time the game opens with the mod it will generate a default sv_config.
 Souls Vision was developed and tested on version **1.16**, it is expected to work with previous and future versions as long as the game’s internal structures remain unchanged since it relies on memory reading. Some incompatibilities with mods that deal with game's FPS are expected as Souls Vision is tied to the game's rendering methods. Either way, let me know if any kind of error occurs.
 
 ## Installation
-Add the `SoulsVision.dll` and `sv_assets` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
+Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.4.0] - 16-12-2024**
+  * Bundled the textures within the DLL to avoid distributing them in a separate folder
 * **[v0.3.3] - 10-12-2024**
   * Fixed a bug making the overlay shift infinitely to the left when `dragOverlay` is set to `true`
 * **[v0.3.2] - 10-12-2024**
