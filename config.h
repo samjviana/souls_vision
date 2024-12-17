@@ -30,6 +30,7 @@ public:
     static bool configUpdated;
     static bool opacityUpdated;
     static bool fontSizeUpdated;
+    static bool hideBlightMadness;
 
     static bool CheckConfig(const std::string& configFilePath);
     static void SaveConfig(const std::string& configFilePath);

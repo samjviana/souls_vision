@@ -63,6 +63,8 @@ Souls Vision was developed and tested on version **1.16**, it is expected to wor
 Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.4.1] - 16-12-2024**
+  * Added option to hide DeathBlight and Madness bars for common enemies
 * **[v0.4.0] - 16-12-2024**
   * Bundled the textures within the DLL to avoid distributing them in a separate folder
 * **[v0.3.3] - 10-12-2024**

@@ -21,6 +21,7 @@ bool Config::dragOverlay = false;
 bool Config::configUpdated = false;
 bool Config::opacityUpdated = false;
 bool Config::fontSizeUpdated = false;
+bool Config::hideBlightMadness = false;
 
 bool Config::CheckConfig(const std::string& configFilePath) {
     try {
@@ -48,6 +49,11 @@ bool Config::CheckConfig(const std::string& configFilePath) {
 
         if (!configJson.contains("dragOverlay")) {
             configJson["dragOverlay"] = false;
+            updated = true;
+        }
+
+        if (!configJson.contains("hideBlightMadness")) {
+            configJson["hideBlightMadness"] = false;
             updated = true;
         }
 
@@ -189,6 +195,7 @@ void Config::SaveConfig(const std::string& configFilePath) {
     configJson["bestEffectIconSize"] = bestEffectIconSize.x;
     configJson["dmgTypeIconSize"] = dmgTypeIconSize.x;
     configJson["statBarSpacing"] = statBarSpacing;
+    configJson["hideBlightMadness"] = hideBlightMadness;
 
     configFile << configJson.dump(4);
     configFile.close();
@@ -225,6 +232,7 @@ void Config::LoadConfig(const std::string& configFilePath) {
         dmgTypeIconSize.x = configJson["dmgTypeIconSize"];
         dmgTypeIconSize.y = dmgTypeIconSize.x;
         statBarSpacing = configJson["statBarSpacing"];
+        hideBlightMadness = configJson["hideBlightMadness"];
 
         componentVisibility = LoadComponentVisibility(configJson);
 
@@ -250,6 +258,7 @@ void Config::CreateConfig(const std::string &configFilePath) {
 
         configJson["debug"] = false;
         configJson["dragOverlay"] = false;
+        configJson["hideBlightMadness"] = false;
         configJson["fontSize"] = 18.0f;
         configJson["opacity"] = 0.9f;
         configJson["bestEffects"] = 3;

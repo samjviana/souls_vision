@@ -533,6 +533,9 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         if (!effectTexture.textureResource) {
             continue;
         }
+        if (targetChrIns->chrType == 5 && Config::hideBlightMadness && (type == BarType::DeathBlight || type == BarType::Madness)) {
+            continue;
+        }
 
         D3D12_GPU_DESCRIPTOR_HANDLE effectIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), effectTexture.index);
         auto effectIconTexID = static_cast<ImTextureID>(effectIconHandle.ptr);
