@@ -31,6 +31,7 @@ public:
     static bool opacityUpdated;
     static bool fontSizeUpdated;
     static bool hideBlightMadness;
+    static int maxEffectBars;
 
     static bool CheckConfig(const std::string& configFilePath);
     static void SaveConfig(const std::string& configFilePath);

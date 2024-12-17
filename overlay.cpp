@@ -553,7 +553,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         paddingY += bestEffectHeight + Config::statBarSpacing;
     }
 
-    for (int i = 0; i < effectBarsToRender.size(); i++) {
+    for (int i = 0; i < effectBarsToRender.size() && i < Config::maxEffectBars; i++) {
         auto [bar, settings, decimals] = effectBarsToRender[i];
         float innerPaddingY = paddingY + static_cast<float>(i) * (Config::effectBarIconSize.y + Config::statBarSpacing);
         float paddingX = dmgTypesWidth;

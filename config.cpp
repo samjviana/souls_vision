@@ -22,6 +22,7 @@ bool Config::configUpdated = false;
 bool Config::opacityUpdated = false;
 bool Config::fontSizeUpdated = false;
 bool Config::hideBlightMadness = false;
+int Config::maxEffectBars = 7;
 
 bool Config::CheckConfig(const std::string& configFilePath) {
     try {
@@ -84,6 +85,11 @@ bool Config::CheckConfig(const std::string& configFilePath) {
 
         if (!configJson.contains("dmgTypeIconSize")) {
             configJson["dmgTypeIconSize"] = 30;
+            updated = true;
+        }
+
+        if (!configJson.contains("maxEffectBars")) {
+            configJson["maxEffectBars"] = 7;
             updated = true;
         }
 
@@ -161,6 +167,7 @@ void Config::SaveConfig(const std::string& configFilePath) {
     configJson["fontSize"] = fontSize;
     configJson["opacity"] = opacity;
     configJson["bestEffects"] = bestEffects;
+    configJson["maxEffectBars"] = maxEffectBars;
 
     configJson["componentVisibility"] = {
         {"hp",          componentVisibility.hp},
@@ -233,6 +240,7 @@ void Config::LoadConfig(const std::string& configFilePath) {
         dmgTypeIconSize.y = dmgTypeIconSize.x;
         statBarSpacing = configJson["statBarSpacing"];
         hideBlightMadness = configJson["hideBlightMadness"];
+        maxEffectBars = configJson["maxEffectBars"];
 
         componentVisibility = LoadComponentVisibility(configJson);
 
@@ -265,6 +273,7 @@ void Config::CreateConfig(const std::string &configFilePath) {
         configJson["bestEffectIconSize"] = 39;
         configJson["dmgTypeIconSize"] = 30;
         configJson["statBarSpacing"] = 0;
+        configJson["maxEffectBars"] = 7;
 
         configJson["componentVisibility"] = {
             {"hp", true},
