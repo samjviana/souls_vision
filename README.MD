@@ -30,6 +30,7 @@ The first time the game opens with the mod it will generate a default sv_config.
 * **`dmgTypeIconSize`**: *int* - Size of the damage type icons. Default is `30`.
 * **`fontSize`**: *float* - Font size of the text displayed on the bars. Default is `18.0`.
 * **`statBarSpacing`**: *int* - Spacing between the bars, the space used around the "bestEffect" will be half of this. Default is `0`.
+* **`hideBlightMadness`**: *bool* - If set to `true`, the Death Blight and Madness bars will be hidden for common enemies. Default is `false`.
 * **`statBar`**: *object* - Configuration related to the bars.
     * **`position`**: *object* - Determines the bar’s on-screen position from top-left to bottom-right.
         * **`x`**: *int* - Horizontal position of the bar in pixels.
