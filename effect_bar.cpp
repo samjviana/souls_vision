@@ -69,7 +69,7 @@ void EffectBar::Render(const BarSettings &settings, float paddingX, float paddin
     ImGui::Image(barTexID, ImVec2(barSize.x * percentage, barSize.y), uv0, uv1, barColor_);
 
     ImVec2 clipMin = ImVec2(
-            settings.position.x + barPosition.x,
+            barPosition.x,
             settings.position.y + barPosition.y
     );
     ImVec2 clipMax = ImVec2(
