@@ -48,6 +48,7 @@ private:
     static float GetTargetValue(BarType type, ChrIns* targetChrIns);
     static float GetTargetMaxValue(BarType type, ChrIns* targetChrIns);
     static bool GetBarVisibility(BarType type);
+    static bool GetBarHideText(BarType type);
     static ImVec4 GetColor0To1(int r, int g, int b, int a);
     static ImFont* LoadFont();
 

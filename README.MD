@@ -40,18 +40,10 @@ The first time the game opens with the mod it will generate a default sv_config.
         * **`width`**: *int* - Width of the bar in pixels.
         * **`height`**: *int* - Height of the bar in pixels.
     * **`hideText`**: *bool* - If set to `true`, hides the text displayed on the bar (e.g. “90/219”).
-* **`componentVisibility`**: *object* - Configuration for the visibility of the bars. All the bars are visible by default.
-  * **`hp`**: *bool* - If set to `false`, the HP bar will be hidden. Default is `true`.
-  * **`fp`**: *bool* - If set to `false`, the FP bar will be hidden. Default is `true`.
-  * **`stamina`**: *bool* - If set to `false`, the Stamina bar will be hidden. Default is `true`.
-  * **`stagger`**: *bool* - If set to `false`, the Stagger bar will be hidden. Default is `true`.
-  * **`poison`**: *bool* - If set to `false`, the Poison bar will be hidden. Default is `true`.
-  * **`scarletRot`**: *bool* - If set to `false`, the Scarlet Rot bar will be hidden. Default is `true`.
-  * **`hemorrhage`**: *bool* - If set to `false`, the Hemorrhage bar will be hidden. Default is `true`.
-  * **`deathBlight`**: *bool* - If set to `false`, the Death Blight bar will be hidden. Default is `true`.
-  * **`frostbite`**: *bool* - If set to `false`, the Frostbite bar will be hidden. Default is `true`.
-  * **`sleep`**: *bool* - If set to `false`, the Sleep bar will be hidden. Default is `true`.
-  * **`madness`**: *bool* - If set to `false`, the Madness bar will be hidden. Default is `true`.
+* **`components`**: *object* - Configuration for the visibility of the bars. All the bars are visible by default.
+  * **`hp`|`fp`|`stamina`|`stagger`|`poison`|`scarletRot`|`hemorrhage`|`deathBlight`|`frostbite`|`sleep`|`madness`**: *object* - Bar configuration.
+    * **`visible`**: *bool* - If set to `false`, the bar will be hidden. Default is `true`.
+    * **`hideText`**: *bool* - If set to `true`, hides the text displayed on the bar (e.g. “90/219”).
   * **`bestEffects`**: *bool* - If set to `false`, the Best Effects against the enemy will be hidden. Default is `true`.
   * **`immuneEffects`**: *bool* - If set to `false`, the effects that the enemy is immune to will be hidden. Default is `true`.
   * **`dmgTypes`**: *bool* - If set to `false`, the Damage Type information will be hidden. Default is `true`.
@@ -65,6 +57,8 @@ Souls Vision was developed and tested on version **1.16**, it is expected to wor
 Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.4.2] - 17-12-2024**
+  * Added unique options to hide the text for each bar
 * **[v0.4.1] - 16-12-2024**
   * Added option to hide DeathBlight and Madness bars for common enemies
 * **[v0.4.0] - 16-12-2024**

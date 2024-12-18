@@ -42,18 +42,23 @@ struct BarSettings {
     std::string textureName;
 };
 
-struct ComponentVisibility {
-    bool hp = true;
-    bool fp = true;
-    bool stamina = true;
-    bool stagger = true;
-    bool poison = true;
-    bool scarletRot = true;
-    bool hemorrhage = true;
-    bool deathBlight = true;
-    bool frostbite = true;
-    bool sleep = true;
-    bool madness = true;
+struct ComponentConfig {
+    bool visible;
+    bool hideText;
+};
+
+struct Components {
+    ComponentConfig hp = {true, false};
+    ComponentConfig fp = {true, false};
+    ComponentConfig stamina = {true, false};
+    ComponentConfig stagger = {true, false};
+    ComponentConfig poison = {true, false};
+    ComponentConfig scarletRot = {true, false};
+    ComponentConfig hemorrhage = {true, false};
+    ComponentConfig deathBlight = {true, false};
+    ComponentConfig frostbite = {true, false};
+    ComponentConfig sleep = {true, false};
+    ComponentConfig madness = {true, false};
     bool bestEffects = true;
     bool immuneEffects = true;
     bool dmgTypes = true;

@@ -417,6 +417,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         BarSettings settings = Config::statBarSettings;
         settings.currentValue = GetTargetValue(bar.type, targetChrIns);
         settings.maxValue = GetTargetMaxValue(bar.type, targetChrIns);
+        settings.hideText = GetBarHideText(bar.type);
         int decimals = bar.type == BarType::Stagger ? 2 : 0;
         if (settings.maxValue <= 0) {
             continue;
@@ -435,6 +436,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         BarSettings settings = Config::statBarSettings;
         settings.maxValue = GetTargetMaxValue(bar.type, targetChrIns);
         settings.currentValue = settings.maxValue - GetTargetValue(bar.type, targetChrIns);
+        settings.hideText = GetBarHideText(bar.type);
         int decimals = 0;
         if (settings.maxValue <= 0 || settings.currentValue <= 0) {
             continue;
@@ -508,7 +510,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
     float paddingY = statBarsheight;
 
-    for (int i = 0; i < Config::bestEffects && i < strongestEffects.size() && Config::componentVisibility.bestEffects; i++) {
+    for (int i = 0; i < Config::bestEffects && i < strongestEffects.size() && Config::components.bestEffects; i++) {
         BarType type = strongestEffects[i];
         TextureInfo effectTexture = GetTexture(GetTextureNameForType(type));
         if (!effectTexture.textureResource) {
@@ -527,7 +529,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         ImGui::Image(effectIconTexID, iconSize);
     }
 
-    for (int i = 0; i < immuneEffects.size() && Config::componentVisibility.immuneEffects; i++) {
+    for (int i = 0; i < immuneEffects.size() && Config::components.immuneEffects; i++) {
         BarType type = immuneEffects[i];
         TextureInfo effectTexture = GetTexture(GetTextureNameForType(type, true));
         if (!effectTexture.textureResource) {
@@ -563,7 +565,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
     ImVec2 damageTypeIconSize = Config::dmgTypeIconSize;
 
-    for (int i = 0; i < bestDmgTypes.size() && Config::componentVisibility.dmgTypes; i++) {
+    for (int i = 0; i < bestDmgTypes.size() && Config::components.dmgTypes; i++) {
         auto [dmgType, value] = bestDmgTypes[i];
         TextureInfo dmgTypeTexture = GetTexture(dmgType + ".png");
         if (!dmgTypeTexture.textureResource) {
@@ -607,7 +609,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
     paddingY = damageTypeIconSize.y + Config::statBarSpacing;
 
-    for (int i = 0; i < neutralDmgTypes.size() && Config::componentVisibility.dmgTypes && Config::componentVisibility.neutralDmgTypes; i++) {
+    for (int i = 0; i < neutralDmgTypes.size() && Config::components.dmgTypes && Config::components.neutralDmgTypes; i++) {
         auto [dmgType, value] = neutralDmgTypes[i];
         TextureInfo dmgTypeTexture = GetTexture(dmgType + ".png");
         if (!dmgTypeTexture.textureResource) {
@@ -627,7 +629,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
     paddingY += damageTypeIconSize.y + Config::statBarSpacing;
 
-    for (int i = 0; i < worseDmgTypes.size() && Config::componentVisibility.dmgTypes; i++) {
+    for (int i = 0; i < worseDmgTypes.size() && Config::components.dmgTypes; i++) {
         auto [dmgType, value] = worseDmgTypes[i];
         TextureInfo dmgTypeTexture = GetTexture(dmgType + ".png");
         if (!dmgTypeTexture.textureResource) {
@@ -981,98 +983,98 @@ std::string Overlay::GetTextureNameForType(BarType type, bool grayscale) {
     return textureNames[type];
 }
 
-    bool Overlay::LoadTextureFromResource(int resourceID, HMODULE module, ID3D12Device *device, D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle, TextureInfo *textureInfo, bool grayscale) {
-        HRSRC resource = FindResource(module, MAKEINTRESOURCE(resourceID), RT_RCDATA);
-        if (!resource) {
-            Logger::Error(&"Failed to find resource: " [ resourceID ]);
-            return false;
-        }
-
-        HGLOBAL resourceData = LoadResource(module, resource);
-        if (!resourceData) {
-            Logger::Error(&"Failed to load resource: " [ resourceID ]);
-            return false;
-        }
-
-        void *data = LockResource(resourceData);
-        if (!data) {
-            Logger::Error(&"Failed to lock resource: " [ resourceID ]);
-            return false;
-        }
-
-        size_t size = SizeofResource(module, resource);
-        if (size == 0) {
-            Logger::Error(&"Failed to get size of resource: " [ resourceID ]);
-            return false;
-        }
-
-        bool ret = LoadTextureFromMemory(data, size, device, srvCpuHandle, textureInfo, Config::opacity, grayscale);
-
-        return ret;
+bool Overlay::LoadTextureFromResource(int resourceID, HMODULE module, ID3D12Device *device, D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle, TextureInfo *textureInfo, bool grayscale) {
+    HRSRC resource = FindResource(module, MAKEINTRESOURCE(resourceID), RT_RCDATA);
+    if (!resource) {
+        Logger::Error(&"Failed to find resource: " [ resourceID ]);
+        return false;
     }
 
-    void Overlay::LoadAllTexturesResources(ID3D12Device *device) {
-        std::map<std::string, int> resourceMap = {
-                {"Bar.png", IDR_BAR_PNG},
-                {"BarBG.png", IDR_BAR_BG_PNG},
-                {"BarEdge.png", IDR_BAR_EDGE_PNG},
-                {"BarEdge2.png", IDR_BAR_EDGE_2_PNG},
-                {"Blue.png", IDR_BLUE_PNG},
-                {"BuddyWaku.png", IDR_BUDDY_WAKU_PNG},
-                {"ConditionWaku.png", IDR_CONDITION_WAKU_PNG},
-                {"DeathBlight.png", IDR_DEATHBLIGHT_PNG},
-                {"Fire.png", IDR_FIRE_PNG},
-                {"Frostbite.png", IDR_FROSTBITE_PNG},
-                {"Green.png", IDR_GREEN_PNG},
-                {"GreenArrow.png", IDR_GREEN_ARROW_PNG},
-                {"Hemorrhage.png", IDR_HEMORRHAGE_PNG},
-                {"Holy.png", IDR_HOLY_PNG},
-                {"Lightning.png", IDE_LIGHTNING_PNG},
-                {"Madness.png", IDR_MADNESS_PNG},
-                {"Magic.png", IDR_MAGIC_PNG},
-                {"Poison.png", IDR_POISON_PNG},
-                {"Red.png", IDR_RED_PNG},
-                {"RedArrow.png", IDE_RED_ARROW_PNG},
-                {"ScarletRot.png", IDR_SCARLET_ROT_PNG},
-                {"Sleep.png", IDR_SLEEP_PNG},
-                {"Yellow.png", IDR_YELLOW_PNG}
-        };
+    HGLOBAL resourceData = LoadResource(module, resource);
+    if (!resourceData) {
+        Logger::Error(&"Failed to load resource: " [ resourceID ]);
+        return false;
+    }
 
-        D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle = srvHeap_->GetCPUDescriptorHandleForHeapStart();
-        SIZE_T descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        srvCpuHandle.ptr += descriptorSize;
+    void *data = LockResource(resourceData);
+    if (!data) {
+        Logger::Error(&"Failed to lock resource: " [ resourceID ]);
+        return false;
+    }
 
-        int textureIndex = 1;
-        for (const auto& [fileName, resourceID] : resourceMap) {
-            TextureInfo textureInfo = {};
+    size_t size = SizeofResource(module, resource);
+    if (size == 0) {
+        Logger::Error(&"Failed to get size of resource: " [ resourceID ]);
+        return false;
+    }
 
-            if (LoadTextureFromResource(resourceID, gModule, device, srvCpuHandle, &textureInfo)) {
-                textureInfo.index = textureIndex++;
-                textureMap_[fileName] = textureInfo;
-                Logger::Info(std::format("Loaded texture: {}", fileName));
+    bool ret = LoadTextureFromMemory(data, size, device, srvCpuHandle, textureInfo, Config::opacity, grayscale);
 
-                srvCpuHandle.ptr += descriptorSize;
+    return ret;
+}
 
-                if (std::ranges::any_of(effectsNames, [&fileName](const std::string& effect) {
-                    return fileName.find(effect) != std::string::npos;
-                })) {
-                    TextureInfo grayscaleTextureInfo = {};
-                    if (LoadTextureFromResource(resourceID, gModule, device, srvCpuHandle, &grayscaleTextureInfo, true)) {
-                        grayscaleTextureInfo.index = textureIndex++;
-                        std::string grayFileName = fileName.substr(0, fileName.find_last_of('.')) + "GrayScale.png";
-                        textureMap_[grayFileName] = grayscaleTextureInfo;
-                        Logger::Info(std::format("Loaded texture: {}", grayFileName));
+void Overlay::LoadAllTexturesResources(ID3D12Device *device) {
+    std::map<std::string, int> resourceMap = {
+            {"Bar.png", IDR_BAR_PNG},
+            {"BarBG.png", IDR_BAR_BG_PNG},
+            {"BarEdge.png", IDR_BAR_EDGE_PNG},
+            {"BarEdge2.png", IDR_BAR_EDGE_2_PNG},
+            {"Blue.png", IDR_BLUE_PNG},
+            {"BuddyWaku.png", IDR_BUDDY_WAKU_PNG},
+            {"ConditionWaku.png", IDR_CONDITION_WAKU_PNG},
+            {"DeathBlight.png", IDR_DEATHBLIGHT_PNG},
+            {"Fire.png", IDR_FIRE_PNG},
+            {"Frostbite.png", IDR_FROSTBITE_PNG},
+            {"Green.png", IDR_GREEN_PNG},
+            {"GreenArrow.png", IDR_GREEN_ARROW_PNG},
+            {"Hemorrhage.png", IDR_HEMORRHAGE_PNG},
+            {"Holy.png", IDR_HOLY_PNG},
+            {"Lightning.png", IDE_LIGHTNING_PNG},
+            {"Madness.png", IDR_MADNESS_PNG},
+            {"Magic.png", IDR_MAGIC_PNG},
+            {"Poison.png", IDR_POISON_PNG},
+            {"Red.png", IDR_RED_PNG},
+            {"RedArrow.png", IDE_RED_ARROW_PNG},
+            {"ScarletRot.png", IDR_SCARLET_ROT_PNG},
+            {"Sleep.png", IDR_SLEEP_PNG},
+            {"Yellow.png", IDR_YELLOW_PNG}
+    };
 
-                        srvCpuHandle.ptr += descriptorSize;
-                    }
+    D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle = srvHeap_->GetCPUDescriptorHandleForHeapStart();
+    SIZE_T descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    srvCpuHandle.ptr += descriptorSize;
+
+    int textureIndex = 1;
+    for (const auto& [fileName, resourceID] : resourceMap) {
+        TextureInfo textureInfo = {};
+
+        if (LoadTextureFromResource(resourceID, gModule, device, srvCpuHandle, &textureInfo)) {
+            textureInfo.index = textureIndex++;
+            textureMap_[fileName] = textureInfo;
+            Logger::Info(std::format("Loaded texture: {}", fileName));
+
+            srvCpuHandle.ptr += descriptorSize;
+
+            if (std::ranges::any_of(effectsNames, [&fileName](const std::string& effect) {
+                return fileName.find(effect) != std::string::npos;
+            })) {
+                TextureInfo grayscaleTextureInfo = {};
+                if (LoadTextureFromResource(resourceID, gModule, device, srvCpuHandle, &grayscaleTextureInfo, true)) {
+                    grayscaleTextureInfo.index = textureIndex++;
+                    std::string grayFileName = fileName.substr(0, fileName.find_last_of('.')) + "GrayScale.png";
+                    textureMap_[grayFileName] = grayscaleTextureInfo;
+                    Logger::Info(std::format("Loaded texture: {}", grayFileName));
+
+                    srvCpuHandle.ptr += descriptorSize;
                 }
-            } else {
-                Logger::Error(std::format("Texture {} failed to load", fileName));
             }
+        } else {
+            Logger::Error(std::format("Texture {} failed to load", fileName));
         }
     }
+}
 
-    LRESULT WINAPI Overlay::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT WINAPI Overlay::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     if (ImGui::GetCurrentContext()) {
         ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
     }
@@ -1142,27 +1144,53 @@ float Overlay::GetTargetMaxValue(BarType type, ChrIns *targetChrIns) {
 
 bool Overlay::GetBarVisibility(BarType type) {
     if (type == BarType::HP) {
-        return Config::componentVisibility.hp;
+        return Config::components.hp.visible;
     } else if (type == BarType::FP) {
-        return Config::componentVisibility.fp;
+        return Config::components.fp.visible;
     } else if (type == BarType::Stamina) {
-        return Config::componentVisibility.stamina;
+        return Config::components.stamina.visible;
     } else if (type == BarType::Stagger) {
-        return Config::componentVisibility.stagger;
+        return Config::components.stagger.visible;
     } else if (type == BarType::Poison) {
-        return Config::componentVisibility.poison;
+        return Config::components.poison.visible;
     } else if (type == BarType::ScarletRot) {
-        return Config::componentVisibility.scarletRot;
+        return Config::components.scarletRot.visible;
     } else if (type == BarType::Hemorrhage) {
-        return Config::componentVisibility.hemorrhage;
+        return Config::components.hemorrhage.visible;
     } else if (type == BarType::DeathBlight) {
-        return Config::componentVisibility.deathBlight;
+        return Config::components.deathBlight.visible;
     } else if (type == BarType::Frostbite) {
-        return Config::componentVisibility.frostbite;
+        return Config::components.frostbite.visible;
     } else if (type == BarType::Sleep) {
-        return Config::componentVisibility.sleep;
+        return Config::components.sleep.visible;
     } else if (type == BarType::Madness) {
-        return Config::componentVisibility.madness;
+        return Config::components.madness.visible;
+    }
+}
+
+bool Overlay::GetBarHideText(BarType type) {
+    if (type == BarType::HP) {
+        return Config::components.hp.hideText;
+    } else if (type == BarType::FP) {
+        return Config::components.fp.hideText;
+    } else if (type == BarType::Stamina) {
+        return Config::components.stamina.hideText;
+    } else if (type == BarType::Stagger) {
+        return Config::components.stagger.hideText;
+    } else if (type == BarType::Poison) {
+        return Config::components.poison.hideText;
+    } else if (type == BarType::ScarletRot) {
+        return Config::components.scarletRot.hideText;
+    } else if (type == BarType::Hemorrhage) {
+        return Config::components.hemorrhage.hideText;
+    } else if (type == BarType::DeathBlight) {
+        return Config::components.deathBlight.hideText;
+    } else if (type == BarType::Frostbite) {
+        return Config::components.frostbite.hideText;
+    } else if (type == BarType::Sleep) {
+        return Config::components.sleep.hideText;
+    } else if (type == BarType::Madness) {
+        return Config::components.madness.hideText;
     }
 }
 

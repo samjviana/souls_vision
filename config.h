@@ -16,7 +16,7 @@ namespace souls_vision {
 
 class Config {
 public:
-    static ComponentVisibility componentVisibility;
+    static Components components;
     static BarSettings statBarSettings;
     static ImVec2 bestEffectIconSize;
     static ImVec2 dmgTypeIconSize;
@@ -39,7 +39,7 @@ public:
 
 private:
     static void CreateConfig(const std::string& configFilePath);
-    static ComponentVisibility LoadComponentVisibility(const nlohmann::json& configJson);
+    static Components LoadComponentVisibility(const nlohmann::json& configJson);
 };
 
 } // souls_vision
