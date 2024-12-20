@@ -24,7 +24,7 @@ DWORD WINAPI Setup(LPVOID lpParam) {
     gModule = hModule;
 
     gDllPath = GetDllDirectory(hModule);
-    gConfigFilePath = gDllPath + "\\sv_config.json";
+    gConfigFilePath = gDllPath + "\\sv_config.toml";
 
     std::string logFilePath = gDllPath + "\\souls_vision.log";
     Logger::Initialize(logFilePath);
@@ -69,18 +69,17 @@ void Cleanup() {
 void MainThread() {
     gRunning = true;
 
-    std::string configPath = gDllPath + "\\sv_config.json";
-    auto lastWriteTime = std::filesystem::last_write_time(configPath);
+    auto lastWriteTime = std::filesystem::last_write_time(gConfigFilePath);
 
     Logger::Info("Main thread started");
     while (gRunning) {
         try {
-            auto currentWriteTime = std::filesystem::last_write_time(configPath);
+            auto currentWriteTime = std::filesystem::last_write_time(gConfigFilePath);
             if (currentWriteTime != lastWriteTime) {
                 lastWriteTime = currentWriteTime;
 
                 Logger::Info("Config file updated. Reloading...");
-                Config::LoadConfig(configPath);
+                Config::LoadConfig(gConfigFilePath);
                 Config::configUpdated = true;
             }
         } catch (const std::exception& e) {

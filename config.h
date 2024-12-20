@@ -33,13 +33,12 @@ public:
     static bool hideBlightMadness;
     static int maxEffectBars;
 
-    static bool CheckConfig(const std::string& configFilePath);
     static void SaveConfig(const std::string& configFilePath);
     static void LoadConfig(const std::string& configFilePath);
+    static void AddComments(const std::string& configFilePath);
 
 private:
     static void CreateConfig(const std::string& configFilePath);
-    static Components LoadComponentVisibility(const nlohmann::json& configJson);
 };
 
 } // souls_vision

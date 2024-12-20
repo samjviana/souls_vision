@@ -67,6 +67,7 @@ add_library(souls_vision SHARED
         structs/npc_param.h
         resources.h
         resources.rc
+        third_party/toml++/toml.hpp
 )
 
 target_link_libraries(souls_vision PRIVATE d3d12 dxgi dxguid)

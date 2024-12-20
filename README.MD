@@ -1,6 +1,8 @@
 # Souls Vision
 Souls Vision adds a customizable overlay to the top-right corner of the screen (by default), showing additional information about the currently targeted enemy, including HP, Stamina, Stance, Buildup bars for effects (like Poison and Frostbite) and the best damage types to use against the enemy (Magic, Fire, etc.). The overlay is draggable and can be customized to show only the information you want.
 
+![Sample](https://staticdelivery.nexusmods.com/mods/4333/images/6968/6968-1732777544-1499116706.png)
+
 ## Features
 * **Stat Bars**: Shows the current and maximum HP, FP, Stamina, and Stagger/Poise of the targeted enemy.
   * The FP bar usually only appear to "player-like" enemies
@@ -18,8 +20,7 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
 
 ## Configuration
 <details>
-<summary>Config file details</summary>
-The first time the game opens with the mod it will generate a default sv_config.json placing the bars at the top-right of the screen. Every time the config file is edited, it will be reloaded automatically.
+<summary>Config file details</summary>The first time the game opens with the mod it will generate a default sv_config.json placing the bars at the top-right of the screen. Every time the config file is edited, it will be reloaded automatically.
 
 ### Fields
 * **`dragOverlay`**: *bool* - If set to `true`, the overlay can be dragged around the screen by clicking and dragging it.
@@ -33,14 +34,13 @@ The first time the game opens with the mod it will generate a default sv_config.
 * **`maxEffectBars`**: *int* - Maximum number of effect bars to show. Default is `7`.
 * **`hideBlightMadness`**: *bool* - If set to `true`, the Death Blight and Madness bars will be hidden for common enemies. Default is `false`.
 * **`statBar`**: *object* - Configuration related to the bars.
-    * **`position`**: *object* - Determines the bar’s on-screen position from top-left to bottom-right.
-        * **`x`**: *int* - Horizontal position of the bar in pixels.
-        * **`y`**: *int* - Vertical position of the bar in pixels.
-    * **`size`**: *object* - Defines the bar’s dimensions.
-        * **`width`**: *int* - Width of the bar in pixels.
-        * **`height`**: *int* - Height of the bar in pixels.
-    * **`hideText`**: *bool* - If set to `true`, hides the text displayed on the bar (e.g. “90/219”).
-* **`components`**: *object* - Configuration for the visibility of the bars. All the bars are visible by default.
+  * **`position`**: *object* - Determines the bar’s on-screen position from top-left to bottom-right.
+    * **`x`**: *int* - Horizontal position of the bar in pixels.
+    * **`y`**: *int* - Vertical position of the bar in pixels.
+  * **`size`**: *object* - Defines the bar’s dimensions.
+    * **`width`**: *int* - Width of the bar in pixels.
+    * **`height`**: *int* - Height of the bar in pixels.
+* **`components`**: *object* - Configuration for the components of the overlay.
   * **`hp`|`fp`|`stamina`|`stagger`|`poison`|`scarletRot`|`hemorrhage`|`deathBlight`|`frostbite`|`sleep`|`madness`**: *object* - Bar configuration.
     * **`visible`**: *bool* - If set to `false`, the bar will be hidden. Default is `true`.
     * **`hideText`**: *bool* - If set to `true`, hides the text displayed on the bar (e.g. “90/219”).
@@ -57,6 +57,9 @@ Souls Vision was developed and tested on version **1.16**, it is expected to wor
 Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.5.0] - 19-12-2024**
+  * Completely reworked the config file to be more user-friendly
+    * Now the config file uses TOML format allowing for comments and a more organized structure
 * **[v0.4.2] - 17-12-2024**
   * Added unique options to hide the text for each bar
 * **[v0.4.1] - 16-12-2024**
@@ -101,7 +104,7 @@ Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://
 * **[v0.1.0] - 24-11-2024**
   * First working version of the mod
 
-## Credits  
+## Credits
 [Boss Checklist Overlay](https://www.nexusmods.com/eldenring/mods/3859): A lot of the code here helped me with the DirectX hooking.</br>
 [Posture Bar](https://www.nexusmods.com/eldenring/mods/3405): The concept of showing additional "bars" gave me the initial idea.</br>
 [Hunter Pie](https://www.nexusmods.com/monsterhunterrise/mods/181): This is first contact that I had with this idea of Overlay. If you're a Monster Hunter player, I highly recommend it.</br>
