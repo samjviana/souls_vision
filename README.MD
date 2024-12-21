@@ -53,6 +53,17 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
 ## Compatibility
 Souls Vision was developed and tested on version **1.16**, it is expected to work with previous and future versions as long as the game’s internal structures remain unchanged since it relies on memory reading. Some incompatibilities with mods that deal with game's FPS are expected as Souls Vision is tied to the game's rendering methods. Either way, let me know if any kind of error occurs.
 
+### Known Incompatibilities
+1. **Elden Ring Reforged (ERR)** and **Elden Ring Tarnished Edition Overhaul (ERTE)**
+   * These mods remove the cooldown before an effect can be re-applied, enabling stacking of effect buildups. This can lead to minor inconsistencies in the overlay's effect buildup tracking.
+   * The overlay will still work normally, but the buildup bars will not be as accurate as they are in the base game.
+   * Compatibility with this mechanic is planned for a future update.
+2. **Seamless Coop**
+  * In Seamless Coop some things (like the effect buildup) are done on the client side.
+    * When the effect bar is filled and the effect is applied, this information is then communicated to other players. This can cause discrepancies in the overlay, as the buildup bars may differ between players.
+  * The overlay will still function normally, but effects applied by one player may not always be reflected correctly for others.
+  * While fixing this issue is part of my plans, I currently don’t know how to address it, and sadly I don't have a timeline for a fix.
+
 ## Installation
 Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
