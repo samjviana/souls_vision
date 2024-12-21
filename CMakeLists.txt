@@ -67,7 +67,6 @@ add_library(souls_vision SHARED
         structs/npc_param.h
         resources.h
         resources.rc
-        third_party/toml++/toml.hpp
 )
 
 target_link_libraries(souls_vision PRIVATE d3d12 dxgi dxguid)
@@ -75,13 +74,6 @@ add_subdirectory(third_party)
 
 add_custom_command(TARGET souls_vision POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:souls_vision>" "${MODS_DIR}/"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/sv_assets" "${MODS_DIR}/sv_assets"
-        COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/sv_assets_update.stamp"
-)
-
-add_custom_target(copy_sv_assets ALL
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/sv_assets" "${MODS_DIR}/sv_assets"
-        DEPENDS "${CMAKE_BINARY_DIR}/sv_assets_update.stamp"
 )
 
 set_source_files_properties(resources.rc PROPERTIES LANGUAGE RC)

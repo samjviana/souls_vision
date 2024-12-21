@@ -1,6 +1,6 @@
 //----------------------------------------------------------------------------------------------------------------------
 //
-// toml++ v3.4.0
+// tomlplusplus v3.4.0
 // https://github.com/marzer/tomlplusplus
 // SPDX-License-Identifier: MIT
 //
@@ -8,7 +8,7 @@
 //
 // -         THIS FILE WAS ASSEMBLED FROM MULTIPLE HEADER FILES BY A SCRIPT - PLEASE DON'T EDIT IT DIRECTLY            -
 //
-// If you wish to submit a contribution to toml++, hooray and thanks! Before you crack on, please be aware that this
+// If you wish to submit a contribution to tomlplusplus, hooray and thanks! Before you crack on, please be aware that this
 // file was assembled from a number of smaller files by a python script, and code contributions should not be made
 // against it directly. You should instead make your changes in the relevant source file(s). The file names of the files
 // that contributed to this header can be found at the beginnings and ends of the corresponding sections of this file.
@@ -1436,7 +1436,7 @@ TOML_PUSH_WARNINGS;
 
 #ifndef TOML_DISABLE_ENVIRONMENT_CHECKS
 #define TOML_ENV_MESSAGE                                                                                               \
-	"If you're seeing this error it's because you're building toml++ for an environment that doesn't conform to "      \
+	"If you're seeing this error it's because you're building tomlplusplus for an environment that doesn't conform to "      \
 	"one of the 'ground truths' assumed by the library. Essentially this just means that I don't have the "            \
 	"resources to test on more platforms, but I wish I did! You can try disabling the checks by defining "             \
 	"TOML_DISABLE_ENVIRONMENT_CHECKS, but your mileage may vary. Please consider filing an issue at "                  \
@@ -6083,7 +6083,7 @@ TOML_PUSH_WARNINGS;
 
 #if TOML_RETURN_BOOL_FROM_FOR_EACH_BROKEN && !defined(TOML_RETURN_BOOL_FROM_FOR_EACH_BROKEN_ACKNOWLEDGED)
 #define TOML_RETURN_BOOL_FROM_FOR_EACH_BROKEN_MESSAGE                                                                  \
-	"If you're seeing this error it's because you're using one of toml++'s for_each() functions on a compiler with "   \
+	"If you're seeing this error it's because you're using one of tomlplusplus's for_each() functions on a compiler with "   \
 	"known bugs in that area (e.g. GCC 7). On these compilers returning a bool (or bool-convertible) value from the "  \
 	"for_each() callable causes spurious compilation failures, while returning nothing (void) works fine. "            \
 	"If you believe this message is incorrect for your compiler, you can try your luck by #defining "                  \
@@ -13454,7 +13454,7 @@ TOML_ANON_NAMESPACE_END;
 //    These macros encapsulate the differences between the two modes so I can write code code
 //    as though I was only targeting one mode and not want yeet myself into the sun.
 //    They're all #undef'd at the bottom of the parser's implementation so they should be harmless outside
-//    of toml++.
+//    of tomlplusplus.
 
 #define is_eof()		 !cp
 #define assert_not_eof() TOML_ASSERT_ASSUME(cp != nullptr)

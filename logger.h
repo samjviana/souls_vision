@@ -1,6 +1,8 @@
 //
 // Created by PC-SAMUEL on 23/11/2024.
 //
+// A logging class for file and console logging with multi-threading support.
+//
 
 #ifndef SOULS_VISION_LOGGER_H
 #define SOULS_VISION_LOGGER_H

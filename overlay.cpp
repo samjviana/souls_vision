@@ -63,7 +63,7 @@ void Overlay::Initialize() {
     HookHelper::SetRenderCallback(Render);
     HookHelper::SetCleanupCallback(CleanupRenderTargets);
 
-    textureCount_ = GetTextureCount();
+    textureCount_ = CountPngResources(gModule);
 
     if (ImGui::GetCurrentContext()) {
         return;
