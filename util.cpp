@@ -19,8 +19,8 @@ BOOL CALLBACK EnumResourceNamesA(HMODULE hModule, LPCSTR lpType, LPSTR lpName, L
 
     int resourceID = LOWORD(reinterpret_cast<ULONG_PTR>(lpName));
 
-    const int MIN_PNG_ID = 101;
-    const int MAX_PNG_ID = 199;
+    const int MIN_PNG_ID = 201;
+    const int MAX_PNG_ID = 299;
 
     if (resourceID >= MIN_PNG_ID && resourceID <= MAX_PNG_ID) {
         int* pCount = reinterpret_cast<int*>(lParam);

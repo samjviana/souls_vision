@@ -57,9 +57,11 @@ Souls Vision was developed and tested on version **1.16**, it is expected to wor
 Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
 
 ## Changelog
+* **[v0.5.1] - 21-12-2024**
+  * Fixes a bug that caused the game to crash at startup
+    * The crash was caused by a incorrect handling of the resources
 * **[v0.5.0] - 19-12-2024**
   * Completely reworked the config file to be more user-friendly
-    * Now the config file uses TOML format allowing for comments and a more organized structure
 * **[v0.4.2] - 17-12-2024**
   * Added unique options to hide the text for each bar
 * **[v0.4.1] - 16-12-2024**
