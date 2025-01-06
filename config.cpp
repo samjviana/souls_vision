@@ -19,6 +19,7 @@ int Config::bestEffects = 3;
 int Config::statBarSpacing = 0;
 float Config::fontSize = 18.0f;
 float Config::opacity;
+int Config::delay = 0;
 bool Config::debug = false;
 bool Config::dragOverlay = false;
 bool Config::configUpdated = false;
@@ -35,7 +36,8 @@ void Config::SaveConfig(const std::string& configFilePath) {
                 {"debug", debug},
                 {"dragOverlay", dragOverlay},
                 {"fontSize", fontSize},
-                {"opacity", opacity}
+                {"opacity", opacity},
+                {"delay", delay},
         });
 
         configToml.insert_or_assign("appearance", toml::table{
@@ -116,6 +118,7 @@ void Config::LoadConfig(const std::string& configFilePath) {
         hideBlightMadness = configToml["general"]["hideBlightMadness"].value_or(false);
         fontSize = configToml["general"]["fontSize"].value_or(18.0f);
         opacity = configToml["general"]["opacity"].value_or(0.9f);
+        delay = configToml["general"]["delay"].value_or(0);
 
         fontSizeUpdated = (fontSize != configToml["general"]["fontSize"].value_or(fontSize));
         opacityUpdated = (opacity != configToml["general"]["opacity"].value_or(opacity));
@@ -204,7 +207,8 @@ void Config::CreateConfig(const std::string &configFilePath) {
                 {"dragOverlay", false},
                 {"hideBlightMadness", false},
                 {"fontSize", 18.0f},
-                {"opacity", 0.9f}
+                {"opacity", 0.9f},
+                {"delay", 0}
         });
 
         configToml.insert_or_assign("appearance", toml::table{
@@ -276,6 +280,7 @@ void Config::AddComments(const std::string &configFilePath) {
                 {"dragOverlay", "If set to `true`, the overlay can be dragged around the screen by clicking and dragging it"},
                 {"fontSize", "Font size of the text displayed on the bars. Default is `18.0`"},
                 {"opacity", "Opacity of the overlay, from 0.0 (fully transparent) to 1.0 (fully opaque). This option requires the game to be restarted to take effect"},
+                {"delay", "Delay in milliseconds before initializing the overlay. Default is `0`"},
                 // appearance
                 {"bestEffectIconSize", "Size of the best effect icons. Default is `33`"},
                 {"bestEffects", "How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `2`"},

@@ -25,6 +25,7 @@ public:
     static int bestEffects;
     static float fontSize;
     static float opacity;
+    static int delay;
     static bool debug;
     static bool dragOverlay;
     static bool configUpdated;

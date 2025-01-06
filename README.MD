@@ -26,6 +26,7 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
 * **`dragOverlay`**: *bool* - If set to `true`, the overlay can be dragged around the screen by clicking and dragging it.
 * **`debug`**: *bool* - Enables or disables debug mode. If set to `true`, a console window will open with the game, showing the same information as the one found in the `souls_vision.log`.
 * **`opacity`**: *float* - Opacity of the overlay, from 0.0 (fully transparent) to 1.0 (fully opaque). This option requires the game to be restarted to take effect.
+* **`delay`**: *int* - Delay in milliseconds before initializing the overlay. Default is `0`. 
 * **`bestEffects`**: *int* - How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `2`.
 * **`bestEffectIconSize`**: *int* - Size of the best effect icons. Default is `33`.
 * **`dmgTypeIconSize`**: *int* - Size of the damage type icons. Default is `30`.
@@ -59,15 +60,21 @@ Souls Vision was developed and tested on version **1.16**, it is expected to wor
    * The overlay will still work normally, but the buildup bars will not be as accurate as they are in the base game.
    * Compatibility with this mechanic is planned for a future update.
 2. **Seamless Coop**
-  * In Seamless Coop some things (like the effect buildup) are done on the client side.
-    * When the effect bar is filled and the effect is applied, this information is then communicated to other players. This can cause discrepancies in the overlay, as the buildup bars may differ between players.
-  * The overlay will still function normally, but effects applied by one player may not always be reflected correctly for others.
-  * While fixing this issue is part of my plans, I currently don’t know how to address it, and sadly I don't have a timeline for a fix.
+   * In Seamless Coop some things (like the effect buildup) are done on the client side.
+     * When the effect bar is filled and the effect is applied, this information is then communicated to other players. This can cause discrepancies in the overlay, as the buildup bars may differ between players.
+   * The overlay will still function normally, but effects applied by one player may not always be reflected correctly for others.
+   * While fixing this issue is part of my plans, I currently don’t know how to address it, and sadly I don't have a timeline for a fix.
+3. **MSI Afterburner**
+   * MSI Afterburner can cause the game to crash at startup when Souls Vision is installed.
+   * This issue is caused by the overlay's DirectX hooking conflicting with MSI Afterburner's overlay.
+   * Disabling MSI Afterburner's overlay should resolve the issue.
 
 ## Installation
-Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)
+Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)(or any other mod loader you prefer that supports DLL loading).
 
 ## Changelog
+* **[v0.5.2] - 05-01-2025**
+  * Added a delay parameter to the config file to aid fixing crashes at startup
 * **[v0.5.1] - 21-12-2024**
   * Fixes a bug that caused the game to crash at startup
     * The crash was caused by a incorrect handling of the resources
