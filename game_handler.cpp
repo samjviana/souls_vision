@@ -59,6 +59,10 @@ structs::CSMenuManImp* GameHandler::CSMenuManImp() {
 }
 
 structs::WorldChrManImp* GameHandler::WorldChrManImp() {
+    if (!worldChrManImp_) {
+        return nullptr;
+    }
+
     uintptr_t ptr = Memory::DereferenceAddress(worldChrManImp_);
     if (!ptr) {
         return nullptr;
@@ -68,6 +72,10 @@ structs::WorldChrManImp* GameHandler::WorldChrManImp() {
 }
 
 structs::SoloParamRepositoryImp* GameHandler::SoloParamRepositoryImp() {
+    if (!soloParamRepositoryImp_) {
+        return nullptr;
+    }
+
     uintptr_t ptr = Memory::DereferenceAddress(soloParamRepositoryImp_);
     if (!ptr) {
         return nullptr;

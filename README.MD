@@ -77,6 +77,8 @@ Download the latest version of the mod from one of the following sources:
 Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)(or any other mod loader you prefer that supports DLL loading).
 
 ## Changelog
+* **[v0.5.4] - 16-01-2025**
+  * Added stricter verification for the game pointers to prevent crashes.
 * **[v0.5.3] - 16-01-2025**
   * Fixed a bug that caused the game to crash at startup
     * The crash was happening because CSMenuManImp was `nullptr` at initialization
