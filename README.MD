@@ -52,7 +52,9 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
 </details>
 
 ## Compatibility
-Souls Vision was developed and tested on version **1.16**, it is expected to work with previous and future versions as long as the game’s internal structures remain unchanged since it relies on memory reading. Some incompatibilities with mods that deal with game's FPS are expected as Souls Vision is tied to the game's rendering methods. Either way, let me know if any kind of error occurs.
+Souls Vision was developed and tested on version **1.16**, it is expected to work with previous and future versions as long as the game’s internal structures remain unchanged since it relies on memory reading. Some incompatibilities with mods that deal with game's FPS are expected as Souls Vision is tied to the game's rendering methods. Either way, let me know if any kind of error occurs.
+
+Although Souls Vision is expected to work with all versions of the game (like stated above), unofficial versions of the game (not original copies) have unpredictable behavior and may not work as expected. Support for these versions is not guaranteed.
 
 ### Known Incompatibilities
 1. **Elden Ring Reforged (ERR)** and **Elden Ring Tarnished Edition Overhaul (ERTE)**
@@ -64,7 +66,7 @@ Souls Vision was developed and tested on version **1.16**, it is expected to wor
      * When the effect bar is filled and the effect is applied, this information is then communicated to other players. This can cause discrepancies in the overlay, as the buildup bars may differ between players.
    * The overlay will still function normally, but effects applied by one player may not always be reflected correctly for others.
    * While fixing this issue is part of my plans, I currently don’t know how to address it, and sadly I don't have a timeline for a fix.
-3. **MSI Afterburner**
+3. **MSI Afterburner** (and other similar overlay software)
    * MSI Afterburner can cause the game to crash at startup when Souls Vision is installed.
    * This issue is caused by the overlay's DirectX hooking conflicting with MSI Afterburner's overlay.
    * Disabling MSI Afterburner's overlay should resolve the issue.
@@ -77,6 +79,8 @@ Download the latest version of the mod from one of the following sources:
 Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)(or any other mod loader you prefer that supports DLL loading).
 
 ## Changelog
+* **[v0.5.5] - 16-01-2025**
+  * Fixed a bug where the game's module wasn't being found
 * **[v0.5.4] - 16-01-2025**
   * Added stricter verification for the game pointers to prevent crashes.
 * **[v0.5.3] - 16-01-2025**
