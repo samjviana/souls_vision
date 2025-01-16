@@ -70,14 +70,21 @@ Souls Vision was developed and tested on version **1.16**, it is expected to wor
    * Disabling MSI Afterburner's overlay should resolve the issue.
 
 ## Installation
+Download the latest version of the mod from one of the following sources:
+* [GitHub Releases](https://github.com/samjviana/souls_vision/releases)
+* [Nexus Mods](https://www.nexusmods.com/eldenring/mods/6968?tab=files)
+
 Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)(or any other mod loader you prefer that supports DLL loading).
 
 ## Changelog
+* **[v0.5.3] - 16-01-2025**
+  * Fixed a bug that caused the game to crash at startup
+    * The crash was happening because CSMenuManImp was `nullptr` at initialization
 * **[v0.5.2] - 05-01-2025**
   * Added a delay parameter to the config file to aid fixing crashes at startup
 * **[v0.5.1] - 21-12-2024**
   * Fixes a bug that caused the game to crash at startup
-    * The crash was caused by a incorrect handling of the resources
+    * The crash was caused by an incorrect handling of the resources
 * **[v0.5.0] - 19-12-2024**
   * Completely reworked the config file to be more user-friendly
 * **[v0.4.2] - 17-12-2024**

@@ -47,6 +47,9 @@ void GameHandler::LoadPointers() {
 }
 
 structs::CSMenuManImp* GameHandler::CSMenuManImp() {
+    if (!csMenuManImp_) {
+        return nullptr;
+    }
     uintptr_t ptr = Memory::DereferenceAddress(csMenuManImp_);
     if (!ptr) {
         return nullptr;
