@@ -38,4 +38,9 @@ int CountPngResources(HMODULE hModule) {
     return resourceCount;
 }
 
+bool ModuleExists(const std::string& moduleName) {
+    HMODULE hModule = GetModuleHandleA(moduleName.c_str());
+    return hModule != nullptr;
+}
+
 } // souls_vision

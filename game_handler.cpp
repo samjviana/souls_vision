@@ -5,6 +5,7 @@
 #include "game_handler.h"
 #include "memory.h"
 #include "logger.h"
+#include "util.h"
 
 namespace souls_vision {
 
@@ -23,7 +24,16 @@ uintptr_t GameHandler::worldChrManImp_;
 uintptr_t GameHandler::getChrInsFromHandle_;
 uintptr_t GameHandler::getParamResCap_;
 
-void GameHandler::Initialize() { // GetParamResCap // GetChrInsFromHandle
+void GameHandler::Initialize() {
+    if (!ModuleExists(MODULE_NAME)) {
+        Logger::Error("Module " + MODULE_NAME + " not found.");
+        MODULE_NAME = "start_protected_game.exe";
+    }
+    if (!ModuleExists(MODULE_NAME)) {
+        Logger::Error("Module " + MODULE_NAME + " not found.");
+        return;
+    }
+
     LoadPointers();
 }
 
