@@ -6,7 +6,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define NOMINMAX
 #include "overlay.h"
-#include "hook_helper.h"
 #include "game_handler.h"
 #include "globals.h"
 #include "logger.h"
@@ -60,9 +59,6 @@ std::vector<std::string> Overlay::effectsNames = {
 };
 
 void Overlay::Initialize() {
-    HookHelper::SetRenderCallback(Render);
-    HookHelper::SetCleanupCallback(CleanupRenderTargets);
-
     textureCount_ = CountPngResources(gModule);
 
     if (ImGui::GetCurrentContext()) {

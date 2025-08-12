@@ -3,7 +3,6 @@
 //
 #define NOMINMAX
 #include "hook_helper.h"
-#include "overlay.h"
 #include "logger.h"
 
 #include <wrl/client.h>

@@ -2,7 +2,7 @@
 #include "globals.h"
 #include "game_handler.h"
 #include "hook_helper.h"
-#include "overlay.h"
+#include "renderer.h"
 #include "logger.h"
 #include "config.h"
 
@@ -49,8 +49,8 @@ DWORD WINAPI Setup(LPVOID lpParam) {
     std::this_thread::sleep_for(std::chrono::milliseconds(Config::delay));
     Logger::Info("Game initialized and loaded");
 
+    Renderer::Initialize();
     HookHelper::Hook();
-    Overlay::Initialize();
 
     MainThread();
 
@@ -60,7 +60,7 @@ DWORD WINAPI Setup(LPVOID lpParam) {
 
 void Cleanup() {
     Logger::Info("Shutting down SoulsVision...");
-    Overlay::Uninitialize();
+    Renderer::Uninitialize();
     HookHelper::Unhook();
 
     Logger::Info("SoulsVision shutdown complete");
