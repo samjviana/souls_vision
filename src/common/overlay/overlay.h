@@ -26,13 +26,13 @@ public:
     static void Initialize();
     static void Uninitialize();
     static TextureInfo GetTexture(const std::string& textureName);
+    static void Render(IDXGISwapChain3 *pSwapChain);
+    static void CleanupRenderTargets();
 
     static ID3D12CommandQueue* commandQueue_;
     static ImFont* font_;
 
 private:
-    static void Render(IDXGISwapChain3* pSwapChain);
-    static void CleanupRenderTargets();
     static void InitializeDXResources(IDXGISwapChain3* pSwapChain);
     static void InitializeFileResources(ID3D12Device* device);
     static void InitializeRenderTargets(IDXGISwapChain3* pSwapChain);
