@@ -13,9 +13,9 @@ namespace souls_vision {
 
 Components Config::components;
 BarSettings Config::statBarSettings;
-ImVec2 Config::bestEffectIconSize = ImVec2(39, 33);
-ImVec2 Config::dmgTypeIconSize = ImVec2(30, 30);
-ImVec2 Config::effectBarIconSize = ImVec2(56, 48);
+float Config::bestEffectIconSize = 39;
+float Config::dmgTypeIconSize = 30;
+float Config::effectBarIconSize = 56;
 int Config::bestEffects = 3;
 int Config::statBarSpacing = 0;
 float Config::fontSize = 18.0f;
@@ -44,8 +44,9 @@ void Config::SaveConfig(const std::string& configFilePath) {
         configToml.insert_or_assign("appearance", toml::table{
                 {"bestEffects", bestEffects},
                 {"maxEffectBars", maxEffectBars},
-                {"bestEffectIconSize", bestEffectIconSize.x},
-                {"dmgTypeIconSize", dmgTypeIconSize.x},
+                {"bestEffectIconSize", bestEffectIconSize},
+                {"dmgTypeIconSize", effectBarIconSize},
+                {"statBarIconSize", statBarSpacing},
                 {"statBarSpacing", statBarSpacing},
                 {"hideBlightMadness", hideBlightMadness}
         });
@@ -125,10 +126,10 @@ void Config::LoadConfig(const std::string& configFilePath) {
         opacityUpdated = (opacity != configToml["general"]["opacity"].value_or(opacity));
 
         bestEffects = configToml["appearance"]["bestEffects"].value_or(3);
-        bestEffectIconSize.x = configToml["appearance"]["bestEffectIconSize"].value_or(39);
-        bestEffectIconSize.y = bestEffectIconSize.x * 0.85f;
-        dmgTypeIconSize.x = configToml["appearance"]["dmgTypeIconSize"].value_or(30);
-        dmgTypeIconSize.y = dmgTypeIconSize.x;
+        bestEffectIconSize = configToml["appearance"]["bestEffectIconSize"].value_or(39);
+        bestEffectIconSize = bestEffectIconSize * 0.85f;
+        dmgTypeIconSize = configToml["appearance"]["dmgTypeIconSize"].value_or(30);
+        dmgTypeIconSize = dmgTypeIconSize;
         statBarSpacing = configToml["appearance"]["statBarSpacing"].value_or(0);
         maxEffectBars = configToml["appearance"]["maxEffectBars"].value_or(7);
 
@@ -148,7 +149,7 @@ void Config::LoadConfig(const std::string& configFilePath) {
         }
 
         float iconWidth = statBarSettings.size.y * 1.70f;
-        effectBarIconSize = ImVec2(iconWidth, iconWidth * 0.85f);
+        effectBarIconSize = iconWidth;
 
         auto componentsTable = configToml["components"].as_table();
         if (componentsTable) {

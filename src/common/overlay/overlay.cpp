@@ -452,7 +452,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         windowFlags |= ImGuiWindowFlags_NoResize;
     }
 
-    float dmgTypesWidth = (Config::dmgTypeIconSize.x * maxIconLength);
+    float dmgTypesWidth = (Config::dmgTypeIconSize * maxIconLength);
     float windowWidth = Config::statBarSettings.size.x + dmgTypesWidth;
     ImVec2 windowPosition = Config::statBarSettings.position;
     windowPosition.x -= dmgTypesWidth;
@@ -460,9 +460,9 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
     float statBarsheight = ((Config::statBarSettings.size.y - 10.0f + Config::statBarSpacing) * statBarsToRender.size() + (10.0f + Config::statBarSpacing));
     float bestEffectHeight = 0;
     if (Config::bestEffects > 0) {
-        bestEffectHeight = Config::bestEffectIconSize.y - 5.0f + (Config::statBarSpacing * 0.5f);
+        bestEffectHeight = Config::bestEffectIconSize - 5.0f + (Config::statBarSpacing * 0.5f);
     }
-    float effectBarsHeight = (Config::effectBarIconSize.y + Config::statBarSpacing) * effectBarsToRender.size();
+    float effectBarsHeight = (Config::effectBarIconSize + Config::statBarSpacing) * effectBarsToRender.size();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImVec2 windowSize = ImVec2(
             windowWidth,
@@ -517,13 +517,13 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         D3D12_GPU_DESCRIPTOR_HANDLE effectIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), effectTexture.index);
         auto effectIconTexID = static_cast<ImTextureID>(effectIconHandle.ptr);
 
-        ImVec2 iconSize = Config::bestEffectIconSize;
+        float iconSize = Config::bestEffectIconSize;
         ImVec2 iconPosition = ImVec2(
-            dmgTypesWidth + (Config::bestEffectIconSize.x * i) + 5.0f,
+            dmgTypesWidth + (Config::bestEffectIconSize * i) + 5.0f,
             paddingY - 5.0f + (Config::statBarSpacing * 0.5f)
         );
         ImGui::SetCursorPos(iconPosition);
-        ImGui::Image(effectIconTexID, iconSize);
+        ImGui::Image(effectIconTexID, ImVec2(iconSize, iconSize));
     }
 
     for (int i = 0; i < immuneEffects.size() && Config::components.immuneEffects; i++) {
@@ -539,13 +539,13 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         D3D12_GPU_DESCRIPTOR_HANDLE effectIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), effectTexture.index);
         auto effectIconTexID = static_cast<ImTextureID>(effectIconHandle.ptr);
 
-        ImVec2 iconSize = Config::bestEffectIconSize;
+        float iconSize = Config::bestEffectIconSize;
         ImVec2 iconPosition = ImVec2(
-            (Config::statBarSettings.size.x + dmgTypesWidth) - ((immuneEffects.size() - i) * Config::bestEffectIconSize.x) - 10.0f,
+            (Config::statBarSettings.size.x + dmgTypesWidth) - ((immuneEffects.size() - i) * Config::bestEffectIconSize) - 10.0f,
             paddingY - 5.0f + (Config::statBarSpacing * 0.5f)
         );
         ImGui::SetCursorPos(iconPosition);
-        ImGui::Image(effectIconTexID, iconSize);
+        ImGui::Image(effectIconTexID, ImVec2(iconSize, iconSize));
     }
 
     if (!strongestEffects.empty() || Config::bestEffects != 0 || !immuneEffects.empty()) {
@@ -554,13 +554,13 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
     for (int i = 0; i < effectBarsToRender.size() && i < Config::maxEffectBars; i++) {
         auto [bar, settings, decimals] = effectBarsToRender[i];
-        float innerPaddingY = paddingY + static_cast<float>(i) * (Config::effectBarIconSize.y + Config::statBarSpacing);
+        float innerPaddingY = paddingY + static_cast<float>(i) * (Config::effectBarIconSize + Config::statBarSpacing);
         float paddingX = dmgTypesWidth;
 
         bar.Render(settings, paddingX, innerPaddingY, decimals);
     }
 
-    ImVec2 damageTypeIconSize = Config::dmgTypeIconSize;
+    float damageTypeIconSize = Config::dmgTypeIconSize;
 
     for (int i = 0; i < bestDmgTypes.size() && Config::components.dmgTypes; i++) {
         auto [dmgType, value] = bestDmgTypes[i];
@@ -573,11 +573,11 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         auto dmgTypeIconTexID = static_cast<ImTextureID>(dmgTypeIconHandle.ptr);
 
         ImVec2 iconPosition = ImVec2(
-            dmgTypesWidth - (damageTypeIconSize.x * (i + 1)) + (Config::statBarSettings.size.x * 0.01),
-            (Config::statBarSettings.size.y / 2.0f) - (damageTypeIconSize.y / 2.0f)
+            dmgTypesWidth - (damageTypeIconSize * (i + 1)) + (Config::statBarSettings.size.x * 0.01),
+            (Config::statBarSettings.size.y / 2.0f) - (damageTypeIconSize / 2.0f)
         );
         ImGui::SetCursorPos(iconPosition);
-        ImGui::Image(dmgTypeIconTexID, damageTypeIconSize);
+        ImGui::Image(dmgTypeIconTexID, ImVec2(damageTypeIconSize, damageTypeIconSize));
 
         TextureInfo greenArrowTexture = GetTexture("GreenArrow.png");
         if (!greenArrowTexture.textureResource) {
@@ -587,10 +587,10 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         D3D12_GPU_DESCRIPTOR_HANDLE greenArrowIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), greenArrowTexture.index);
         auto greenArrowIconTexID = static_cast<ImTextureID>(greenArrowIconHandle.ptr);
 
-        ImVec2 arrowSize = ImVec2(damageTypeIconSize.x * 0.45, damageTypeIconSize.x * 0.8125 * 0.45);
+        ImVec2 arrowSize = ImVec2(damageTypeIconSize * 0.45, damageTypeIconSize * 0.8125 * 0.45);
         ImVec2 arrowPosition = iconPosition;
-        arrowPosition.x += damageTypeIconSize.x - arrowSize.x + (arrowSize.x * 0.15);
-        arrowPosition.y += damageTypeIconSize.y - arrowSize.y;
+        arrowPosition.x += damageTypeIconSize - arrowSize.x + (arrowSize.x * 0.15);
+        arrowPosition.y += damageTypeIconSize - arrowSize.y;
 
         std::string strValue = std::format("{:.2f}", value);
         if (bestDmgTypeIndices.contains(strValue)) {
@@ -604,7 +604,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         }
     }
 
-    paddingY = damageTypeIconSize.y + Config::statBarSpacing;
+    paddingY = damageTypeIconSize + Config::statBarSpacing;
 
     for (int i = 0; i < neutralDmgTypes.size() && Config::components.dmgTypes && Config::components.neutralDmgTypes; i++) {
         auto [dmgType, value] = neutralDmgTypes[i];
@@ -617,14 +617,14 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         auto dmgTypeIconTexID = static_cast<ImTextureID>(dmgTypeIconHandle.ptr);
 
         ImVec2 iconPosition = ImVec2(
-            dmgTypesWidth - (damageTypeIconSize.x * (i + 1)) + (Config::statBarSettings.size.x * 0.01),
-            paddingY + (Config::statBarSettings.size.y / 2.0f) - (damageTypeIconSize.y / 2.0f)
+            dmgTypesWidth - (damageTypeIconSize * (i + 1)) + (Config::statBarSettings.size.x * 0.01),
+            paddingY + (Config::statBarSettings.size.y / 2.0f) - (damageTypeIconSize / 2.0f)
         );
         ImGui::SetCursorPos(iconPosition);
-        ImGui::Image(dmgTypeIconTexID, damageTypeIconSize);
+        ImGui::Image(dmgTypeIconTexID, ImVec2(damageTypeIconSize, damageTypeIconSize));
     }
 
-    paddingY += damageTypeIconSize.y + Config::statBarSpacing;
+    paddingY += damageTypeIconSize + Config::statBarSpacing;
 
     for (int i = 0; i < worseDmgTypes.size() && Config::components.dmgTypes; i++) {
         auto [dmgType, value] = worseDmgTypes[i];
@@ -637,11 +637,11 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         auto dmgTypeIconTexID = static_cast<ImTextureID>(dmgTypeIconHandle.ptr);
 
         ImVec2 iconPosition = ImVec2(
-            dmgTypesWidth - (damageTypeIconSize.x * (i + 1)) + (Config::statBarSettings.size.x * 0.01),
-            paddingY + (Config::statBarSettings.size.y / 2.0f) - (damageTypeIconSize.y / 2.0f)
+            dmgTypesWidth - (damageTypeIconSize * (i + 1)) + (Config::statBarSettings.size.x * 0.01),
+            paddingY + (Config::statBarSettings.size.y / 2.0f) - (damageTypeIconSize / 2.0f)
         );
         ImGui::SetCursorPos(iconPosition);
-        ImGui::Image(dmgTypeIconTexID, damageTypeIconSize);
+        ImGui::Image(dmgTypeIconTexID, ImVec2(damageTypeIconSize, damageTypeIconSize));
 
         TextureInfo redArrowTexture = GetTexture("RedArrow.png");
         if (!redArrowTexture.textureResource) {
@@ -651,10 +651,10 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
         D3D12_GPU_DESCRIPTOR_HANDLE redArrowIconHandle = GetGpuDescriptorHandle(srvHeap_->GetGPUDescriptorHandleForHeapStart(), device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), redArrowTexture.index);
         auto redArrowIconTexID = static_cast<ImTextureID>(redArrowIconHandle.ptr);
 
-        ImVec2 arrowSize = ImVec2(damageTypeIconSize.x * 0.45, damageTypeIconSize.x * 0.8125 * 0.45);
+        ImVec2 arrowSize = ImVec2(damageTypeIconSize * 0.45, damageTypeIconSize * 0.8125 * 0.45);
         ImVec2 arrowPosition = iconPosition;
-        arrowPosition.x += damageTypeIconSize.x - arrowSize.x + (arrowSize.x * 0.15);
-        arrowPosition.y += damageTypeIconSize.y - arrowSize.y;
+        arrowPosition.x += damageTypeIconSize - arrowSize.x + (arrowSize.x * 0.15);
+        arrowPosition.y += damageTypeIconSize - arrowSize.y;
 
         std::string strValue = std::format("{:.2f}", value);
         if (worseDmgTypeIndices.contains(strValue)) {

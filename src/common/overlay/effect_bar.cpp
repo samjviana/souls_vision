@@ -10,7 +10,7 @@
 
 namespace souls_vision {
 
-    EffectBar::EffectBar(BarType _type, const std::string& iconPath, ImVec4 barColor, SIZE_T descriptorSize, D3D12_GPU_DESCRIPTOR_HANDLE srvHeapStart) {
+EffectBar::EffectBar(BarType _type, const std::string& iconPath, ImVec4 barColor, SIZE_T descriptorSize, D3D12_GPU_DESCRIPTOR_HANDLE srvHeapStart) {
     type = _type;
 
     backgroundInfo_ = Overlay::GetTexture("BarBG.png");
@@ -48,15 +48,15 @@ void EffectBar::Render(const BarSettings &settings, float paddingX, float paddin
 
     float percentage = settings.currentValue / settings.maxValue;
 
-    ImVec2 iconSize = Config::effectBarIconSize;
+    float iconSize = Config::effectBarIconSize;
 
     ImVec2 barSize = ImVec2(
             settings.size.x * 0.876,
             settings.size.y * 0.73
     );
     ImVec2 barPosition = ImVec2(
-            paddingX + (iconSize.x - (iconSize.x * 0.14)),
-            paddingY + (iconSize.y / 2) - (barSize.y / 2)
+            paddingX + (iconSize - (iconSize * 0.14)),
+            paddingY + (iconSize / 2) - (barSize.y / 2)
     );
     ImVec2 uv0 = ImVec2(0.0f, 0.0f);
     ImVec2 uv1 = ImVec2(percentage, 1.0f);
@@ -90,11 +90,11 @@ void EffectBar::Render(const BarSettings &settings, float paddingX, float paddin
     ImGui::PopClipRect();
 
     ImVec2 framePosition = ImVec2(
-            paddingX + iconSize.x - (iconSize.x * 0.14),
-            paddingY + (iconSize.y / 2) - (settings.size.y / 2)
+            paddingX + iconSize - (iconSize * 0.14),
+            paddingY + (iconSize / 2) - (settings.size.y / 2)
     );
     ImVec2 frameSize = ImVec2(
-            settings.size.x - iconSize.x,
+            settings.size.x - iconSize,
             settings.size.y
     );
     ImGui::SetCursorPos(framePosition);
@@ -102,7 +102,7 @@ void EffectBar::Render(const BarSettings &settings, float paddingX, float paddin
 
     ImVec2 iconPosition = ImVec2(paddingX, paddingY);
     ImGui::SetCursorPos(iconPosition);
-    ImGui::Image(iconTexID, iconSize);
+    ImGui::Image(iconTexID, ImVec2(iconSize, iconSize));
 
     if (!settings.hideText) {
         ImGui::PushFont(Overlay::font_);
@@ -111,7 +111,7 @@ void EffectBar::Render(const BarSettings &settings, float paddingX, float paddin
         ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
         ImVec2 textPosition = ImVec2(
                 barPosition.x + 10.0f,
-                paddingY + ((iconSize.y - textSize.y) * 0.5f)
+                paddingY + ((iconSize - textSize.y) * 0.5f)
         );
         ImGui::SetCursorPos(textPosition);
         ImGui::Text("%s", text.c_str());
