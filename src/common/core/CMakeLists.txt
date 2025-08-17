@@ -11,4 +11,5 @@ target_include_directories(common_core PUBLIC
     ${CMAKE_SOURCE_DIR}/third_party/tomlplusplus
     ${CMAKE_SOURCE_DIR}/third_party/imgui
     ${CMAKE_SOURCE_DIR}/src/common/overlay
+    ${CMAKE_SOURCE_DIR}/src/common/game
 )
