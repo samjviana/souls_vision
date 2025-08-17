@@ -7,7 +7,6 @@
 
 #include <fstream>
 #include <string>
-#include <nlohmann/json.hpp>
 #include <imgui.h>
 #include "logger.h"
 #include "shared_types.h"

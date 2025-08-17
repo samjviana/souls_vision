@@ -4,6 +4,7 @@
 
 #include "config.h"
 #include "globals.h"
+#include "json.hpp"
 
 #include <regex>
 #include <toml.hpp>

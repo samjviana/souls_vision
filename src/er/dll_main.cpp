@@ -8,6 +8,7 @@
 
 #include <thread>
 #include <iostream>
+#include <filesystem>
 
 using namespace souls_vision;
 

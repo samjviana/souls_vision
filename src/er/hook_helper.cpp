@@ -9,6 +9,7 @@
 #include <MinHook.h>
 #include <iostream>
 #include <windows.h>
+#include<overlay.h>
 
 namespace souls_vision {
 
