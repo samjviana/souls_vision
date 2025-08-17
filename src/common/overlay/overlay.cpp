@@ -462,7 +462,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
     if (Config::bestEffects > 0) {
         bestEffectHeight = Config::bestEffectIconSize - 5.0f + (Config::statBarSpacing * 0.5f);
     }
-    float effectBarsHeight = (Config::effectBarIconSize + Config::statBarSpacing) * effectBarsToRender.size();
+    float effectBarsHeight = (Config::statBarIconSize + Config::statBarSpacing) * effectBarsToRender.size();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImVec2 windowSize = ImVec2(
             windowWidth,
@@ -554,7 +554,7 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
 
     for (int i = 0; i < effectBarsToRender.size() && i < Config::maxEffectBars; i++) {
         auto [bar, settings, decimals] = effectBarsToRender[i];
-        float innerPaddingY = paddingY + static_cast<float>(i) * (Config::effectBarIconSize + Config::statBarSpacing);
+        float innerPaddingY = paddingY + static_cast<float>(i) * (Config::statBarIconSize + Config::statBarSpacing);
         float paddingX = dmgTypesWidth;
 
         bar.Render(settings, paddingX, innerPaddingY, decimals);

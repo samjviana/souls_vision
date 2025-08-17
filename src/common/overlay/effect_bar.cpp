@@ -48,7 +48,7 @@ void EffectBar::Render(const BarSettings &settings, float paddingX, float paddin
 
     float percentage = settings.currentValue / settings.maxValue;
 
-    float iconSize = Config::effectBarIconSize;
+    float iconSize = Config::statBarIconSize;
 
     ImVec2 barSize = ImVec2(
             settings.size.x * 0.876,

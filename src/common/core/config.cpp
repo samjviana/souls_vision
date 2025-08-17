@@ -15,7 +15,7 @@ Components Config::components;
 BarSettings Config::statBarSettings;
 float Config::bestEffectIconSize = 39;
 float Config::dmgTypeIconSize = 30;
-float Config::effectBarIconSize = 56;
+float Config::statBarIconSize = 56;
 int Config::bestEffects = 3;
 int Config::statBarSpacing = 0;
 float Config::fontSize = 18.0f;
@@ -45,8 +45,8 @@ void Config::SaveConfig(const std::string& configFilePath) {
                 {"bestEffects", bestEffects},
                 {"maxEffectBars", maxEffectBars},
                 {"bestEffectIconSize", bestEffectIconSize},
-                {"dmgTypeIconSize", effectBarIconSize},
-                {"statBarIconSize", statBarSpacing},
+                {"dmgTypeIconSize", dmgTypeIconSize},
+                {"statBarIconSize", statBarIconSize},
                 {"statBarSpacing", statBarSpacing},
                 {"hideBlightMadness", hideBlightMadness}
         });
@@ -147,9 +147,6 @@ void Config::LoadConfig(const std::string& configFilePath) {
                 statBarSettings.size.y = sizeTable->at("height").value_or(40);
             }
         }
-
-        float iconWidth = statBarSettings.size.y * 1.70f;
-        effectBarIconSize = iconWidth;
 
         auto componentsTable = configToml["components"].as_table();
         if (componentsTable) {

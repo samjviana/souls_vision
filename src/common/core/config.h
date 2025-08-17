@@ -19,7 +19,7 @@ public:
     static BarSettings statBarSettings;
     static float bestEffectIconSize;
     static float dmgTypeIconSize;
-    static float effectBarIconSize;
+    static float statBarIconSize;
     static int statBarSpacing;
     static int bestEffects;
     static float fontSize;
