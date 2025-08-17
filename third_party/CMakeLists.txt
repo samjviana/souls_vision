@@ -9,6 +9,6 @@ target_include_directories(souls_vision PRIVATE imgui)
 
 target_include_directories(souls_vision PRIVATE stb_image)
 
-target_include_directories(souls_vision PRIVATE nlohmann_json/single_include)
+target_include_directories(souls_vision PRIVATE nlohmann_json/single_include/nlohmann)
 
 target_include_directories(souls_vision PRIVATE tomlplusplus)
