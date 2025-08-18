@@ -15,7 +15,7 @@ Components Config::components;
 BarSettings Config::statBarSettings;
 float Config::bestEffectIconSize = 39;
 float Config::dmgTypeIconSize = 30;
-float Config::statBarIconSize = 56;
+float Config::effectBarIconSize = 56;
 int Config::bestEffects = 3;
 int Config::statBarSpacing = 0;
 float Config::fontSize = 18.0f;
@@ -46,7 +46,7 @@ void Config::SaveConfig(const std::string& configFilePath) {
                 {"maxEffectBars", maxEffectBars},
                 {"bestEffectIconSize", bestEffectIconSize},
                 {"dmgTypeIconSize", dmgTypeIconSize},
-                {"statBarIconSize", statBarIconSize},
+                {"effectBarIconSize", effectBarIconSize},
                 {"statBarSpacing", statBarSpacing},
                 {"hideBlightMadness", hideBlightMadness}
         });
