@@ -4,6 +4,7 @@
 
 #include "config.h"
 #include "globals.h"
+#include "json.hpp"
 
 #include <regex>
 #include <toml.hpp>
@@ -12,9 +13,9 @@ namespace souls_vision {
 
 Components Config::components;
 BarSettings Config::statBarSettings;
-ImVec2 Config::bestEffectIconSize = ImVec2(39, 33);
-ImVec2 Config::dmgTypeIconSize = ImVec2(30, 30);
-ImVec2 Config::effectBarIconSize = ImVec2(56, 48);
+float Config::bestEffectIconSize = 33;
+float Config::dmgTypeIconSize = 30;
+float Config::effectBarIconSize = 56;
 int Config::bestEffects = 3;
 int Config::statBarSpacing = 0;
 float Config::fontSize = 18.0f;
@@ -43,8 +44,9 @@ void Config::SaveConfig(const std::string& configFilePath) {
         configToml.insert_or_assign("appearance", toml::table{
                 {"bestEffects", bestEffects},
                 {"maxEffectBars", maxEffectBars},
-                {"bestEffectIconSize", bestEffectIconSize.x},
-                {"dmgTypeIconSize", dmgTypeIconSize.x},
+                {"bestEffectIconSize", bestEffectIconSize},
+                {"dmgTypeIconSize", dmgTypeIconSize},
+                {"effectBarIconSize", effectBarIconSize},
                 {"statBarSpacing", statBarSpacing},
                 {"hideBlightMadness", hideBlightMadness}
         });
@@ -124,10 +126,9 @@ void Config::LoadConfig(const std::string& configFilePath) {
         opacityUpdated = (opacity != configToml["general"]["opacity"].value_or(opacity));
 
         bestEffects = configToml["appearance"]["bestEffects"].value_or(3);
-        bestEffectIconSize.x = configToml["appearance"]["bestEffectIconSize"].value_or(39);
-        bestEffectIconSize.y = bestEffectIconSize.x * 0.85f;
-        dmgTypeIconSize.x = configToml["appearance"]["dmgTypeIconSize"].value_or(30);
-        dmgTypeIconSize.y = dmgTypeIconSize.x;
+        bestEffectIconSize = configToml["appearance"]["bestEffectIconSize"].value_or(33);
+        dmgTypeIconSize = configToml["appearance"]["dmgTypeIconSize"].value_or(30);
+        dmgTypeIconSize = dmgTypeIconSize;
         statBarSpacing = configToml["appearance"]["statBarSpacing"].value_or(0);
         maxEffectBars = configToml["appearance"]["maxEffectBars"].value_or(7);
 
@@ -135,19 +136,16 @@ void Config::LoadConfig(const std::string& configFilePath) {
         if (statBarTable) {
             auto positionTable = statBarTable->at("position").as_table();
             if (positionTable) {
-                statBarSettings.position.x = positionTable->at("x").value_or(gGameWindowSize.width - 555 - 5);
+                statBarSettings.position.x = positionTable->at("x").value_or(gGameWindowSize.width - 600 - 5);
                 statBarSettings.position.y = positionTable->at("y").value_or(10);
             }
 
             auto sizeTable = statBarTable->at("size").as_table();
             if (sizeTable) {
-                statBarSettings.size.x = sizeTable->at("width").value_or(555);
+                statBarSettings.size.x = sizeTable->at("width").value_or(600);
                 statBarSettings.size.y = sizeTable->at("height").value_or(40);
             }
         }
-
-        float iconWidth = statBarSettings.size.y * 1.70f;
-        effectBarIconSize = ImVec2(iconWidth, iconWidth * 0.85f);
 
         auto componentsTable = configToml["components"].as_table();
         if (componentsTable) {
@@ -213,7 +211,7 @@ void Config::CreateConfig(const std::string &configFilePath) {
 
         configToml.insert_or_assign("appearance", toml::table{
                 {"bestEffects", 3},
-                {"bestEffectIconSize", 39},
+                {"bestEffectIconSize", 33},
                 {"dmgTypeIconSize", 30},
                 {"statBarSpacing", 0},
                 {"maxEffectBars", 7}
@@ -285,6 +283,7 @@ void Config::AddComments(const std::string &configFilePath) {
                 {"bestEffectIconSize", "Size of the best effect icons. Default is `33`"},
                 {"bestEffects", "How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `2`"},
                 {"dmgTypeIconSize", "Size of the damage type icons. Default is 30."},
+				{"effectBarIconSize", "Size of the status effect icons. Default is 56"},
                 {"hideBlightMadness", "If true, hides Death Blight and Madness bars for common enemies. Default is false."},
                 {"maxEffectBars", "Maximum number of effect bars to show. Default is 7."},
                 {"statBarSpacing", "Spacing between the bars. Default is 0."},

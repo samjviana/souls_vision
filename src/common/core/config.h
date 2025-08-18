@@ -7,7 +7,6 @@
 
 #include <fstream>
 #include <string>
-#include <nlohmann/json.hpp>
 #include <imgui.h>
 #include "logger.h"
 #include "shared_types.h"
@@ -18,9 +17,9 @@ class Config {
 public:
     static Components components;
     static BarSettings statBarSettings;
-    static ImVec2 bestEffectIconSize;
-    static ImVec2 dmgTypeIconSize;
-    static ImVec2 effectBarIconSize;
+    static float bestEffectIconSize;
+    static float dmgTypeIconSize;
+    static float effectBarIconSize;
     static int statBarSpacing;
     static int bestEffects;
     static float fontSize;

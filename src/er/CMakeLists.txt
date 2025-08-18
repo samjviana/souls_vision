@@ -49,3 +49,6 @@ add_library(souls_vision SHARED
 add_custom_command(TARGET souls_vision POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:souls_vision>" "${MODS_DIR}/"
 )
+
+target_sources(souls_vision PRIVATE ${CMAKE_SOURCE_DIR}/src/common/overlay/resources.rc)
+set_source_files_properties(${CMAKE_SOURCE_DIR}/src/common/overlay/resources.rc PROPERTIES LANGUAGE RC)
