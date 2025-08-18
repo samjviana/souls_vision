@@ -13,7 +13,7 @@ namespace souls_vision {
 
 Components Config::components;
 BarSettings Config::statBarSettings;
-float Config::bestEffectIconSize = 39;
+float Config::bestEffectIconSize = 33;
 float Config::dmgTypeIconSize = 30;
 float Config::effectBarIconSize = 56;
 int Config::bestEffects = 3;
@@ -126,8 +126,7 @@ void Config::LoadConfig(const std::string& configFilePath) {
         opacityUpdated = (opacity != configToml["general"]["opacity"].value_or(opacity));
 
         bestEffects = configToml["appearance"]["bestEffects"].value_or(3);
-        bestEffectIconSize = configToml["appearance"]["bestEffectIconSize"].value_or(39);
-        bestEffectIconSize = bestEffectIconSize * 0.85f;
+        bestEffectIconSize = configToml["appearance"]["bestEffectIconSize"].value_or(33);
         dmgTypeIconSize = configToml["appearance"]["dmgTypeIconSize"].value_or(30);
         dmgTypeIconSize = dmgTypeIconSize;
         statBarSpacing = configToml["appearance"]["statBarSpacing"].value_or(0);
@@ -137,13 +136,13 @@ void Config::LoadConfig(const std::string& configFilePath) {
         if (statBarTable) {
             auto positionTable = statBarTable->at("position").as_table();
             if (positionTable) {
-                statBarSettings.position.x = positionTable->at("x").value_or(gGameWindowSize.width - 555 - 5);
+                statBarSettings.position.x = positionTable->at("x").value_or(gGameWindowSize.width - 600 - 5);
                 statBarSettings.position.y = positionTable->at("y").value_or(10);
             }
 
             auto sizeTable = statBarTable->at("size").as_table();
             if (sizeTable) {
-                statBarSettings.size.x = sizeTable->at("width").value_or(555);
+                statBarSettings.size.x = sizeTable->at("width").value_or(600);
                 statBarSettings.size.y = sizeTable->at("height").value_or(40);
             }
         }
@@ -212,7 +211,7 @@ void Config::CreateConfig(const std::string &configFilePath) {
 
         configToml.insert_or_assign("appearance", toml::table{
                 {"bestEffects", 3},
-                {"bestEffectIconSize", 39},
+                {"bestEffectIconSize", 33},
                 {"dmgTypeIconSize", 30},
                 {"statBarSpacing", 0},
                 {"maxEffectBars", 7}
@@ -284,6 +283,7 @@ void Config::AddComments(const std::string &configFilePath) {
                 {"bestEffectIconSize", "Size of the best effect icons. Default is `33`"},
                 {"bestEffects", "How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `2`"},
                 {"dmgTypeIconSize", "Size of the damage type icons. Default is 30."},
+				{"effectBarIconSize", "Size of the status effect icons. Default is 56"},
                 {"hideBlightMadness", "If true, hides Death Blight and Madness bars for common enemies. Default is false."},
                 {"maxEffectBars", "Maximum number of effect bars to show. Default is 7."},
                 {"statBarSpacing", "Spacing between the bars. Default is 0."},
