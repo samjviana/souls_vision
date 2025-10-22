@@ -5,29 +5,42 @@
 #ifndef SOULS_VISION_RESOURCES_H
 #define SOULS_VISION_RESOURCES_H
 
+#define RT_PNG 101
+
 #define IDR_AGMENA_W1G_FONT 101
-#define IDR_BAR_PNG 201
-#define IDR_BAR_BG_PNG 202
-#define IDR_BAR_EDGE_PNG 203
-#define IDR_BAR_EDGE_2_PNG 204
-#define IDR_BLUE_PNG 205
-#define IDR_BUDDY_WAKU_PNG 206
-#define IDR_CONDITION_WAKU_PNG 207
-#define IDR_DEATHBLIGHT_PNG 208
-#define IDR_FIRE_PNG 209
-#define IDR_FROSTBITE_PNG 210
-#define IDR_GREEN_PNG 211
-#define IDR_GREEN_ARROW_PNG 212
-#define IDR_HEMORRHAGE_PNG 213
-#define IDR_HOLY_PNG 214
-#define IDE_LIGHTNING_PNG 215
-#define IDR_MADNESS_PNG 216
-#define IDR_MAGIC_PNG 217
-#define IDR_POISON_PNG 218
-#define IDR_RED_PNG 219
-#define IDE_RED_ARROW_PNG 220
-#define IDR_SCARLET_ROT_PNG 221
-#define IDR_SLEEP_PNG 222
-#define IDR_YELLOW_PNG 223
+
+#ifndef RC_INVOKED
+struct TextureResource
+{
+    const char* file_name;
+    const char* resource_id;
+};
+
+const TextureResource TEXTURES[] = {
+        {"Bar.png", "IDR_PNG_BAR"},
+        {"BarBG.png", "IDR_PNG_BARBG"},
+        {"BarEdge.png", "IDR_PNG_BAREDGE"},
+        {"BarEdge2.png", "IDR_PNG_BAREDGE2"},
+        {"Blue.png", "IDR_PNG_BLUE"},
+        {"BuddyWaku.png", "IDR_PNG_BUDDYWAKU"},
+        {"ConditionWaku.png", "IDR_PNG_CONDITIONWAKU"},
+        {"DeathBlight.png", "IDR_PNG_DEATHBLIGHT"},
+        {"Fire.png", "IDR_PNG_FIRE"},
+        {"Frostbite.png", "IDR_PNG_FROSTBITE"},
+        {"Green.png", "IDR_PNG_GREEN"},
+        {"GreenArrow.png", "IDR_PNG_GREENARROW"},
+        {"Hemorrhage.png", "IDR_PNG_HEMORRHAGE"},
+        {"Holy.png", "IDR_PNG_HOLY"},
+        {"Lightning.png", "IDR_PNG_LIGHTNING"},
+        {"Madness.png", "IDR_PNG_MADNESS"},
+        {"Magic.png", "IDR_PNG_MAGIC"},
+        {"Poison.png", "IDR_PNG_POISON"},
+        {"Red.png", "IDR_PNG_RED"},
+        {"RedArrow.png", "IDR_PNG_REDARROW"},
+        {"ScarletRot.png", "IDR_PNG_SCARLETROT"},
+        {"Sleep.png", "IDR_PNG_SLEEP"},
+        {"Yellow.png", "IDR_PNG_YELLOW"}
+};
+#endif // if RC_INVOKED
 
 #endif //SOULS_VISION_RESOURCES_H
