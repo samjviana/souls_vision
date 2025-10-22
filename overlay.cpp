@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by PC-SAMUEL on 22/11/2024.
 //
 
@@ -1040,15 +1040,29 @@ void Overlay::LoadAllTexturesResources(ID3D12Device *device) {
             {"Yellow.png", IDR_YELLOW_PNG}
     };
 
-    D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle = srvHeap_->GetCPUDescriptorHandleForHeapStart();
-    SIZE_T descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    const SIZE_T descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    const D3D12_DESCRIPTOR_HEAP_DESC heapDesc = srvHeap_->GetDesc();
+    const D3D12_CPU_DESCRIPTOR_HANDLE heapStart = srvHeap_->GetCPUDescriptorHandleForHeapStart();
+    const D3D12_CPU_DESCRIPTOR_HANDLE heapEnd = {heapStart.ptr + descriptorSize * heapDesc.NumDescriptors};
+    const auto textureCount = textureCount_;
+
+    auto checkHandle = [heapStart, heapEnd, heapDesc, descriptorSize, textureCount](D3D12_CPU_DESCRIPTOR_HANDLE handle)
+    {
+#ifdef _DEBUG
+        UINT descriptorIndex = (handle.ptr - heapStart.ptr) / descriptorSize;
+#endif
+        assert(handle.ptr >= heapStart.ptr && handle.ptr < heapEnd.ptr);
+        return handle;
+    };
+
+    D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle = heapStart;
     srvCpuHandle.ptr += descriptorSize;
 
     int textureIndex = 1;
     for (const auto& [fileName, resourceID] : resourceMap) {
         TextureInfo textureInfo = {};
 
-        if (LoadTextureFromResource(resourceID, gModule, device, srvCpuHandle, &textureInfo)) {
+        if (LoadTextureFromResource(resourceID, gModule, device, checkHandle(srvCpuHandle), &textureInfo)) {
             textureInfo.index = textureIndex++;
             textureMap_[fileName] = textureInfo;
             Logger::Info(std::format("Loaded texture: {}", fileName));
@@ -1059,7 +1073,7 @@ void Overlay::LoadAllTexturesResources(ID3D12Device *device) {
                 return fileName.find(effect) != std::string::npos;
             })) {
                 TextureInfo grayscaleTextureInfo = {};
-                if (LoadTextureFromResource(resourceID, gModule, device, srvCpuHandle, &grayscaleTextureInfo, true)) {
+                if (LoadTextureFromResource(resourceID, gModule, device, checkHandle(srvCpuHandle), &grayscaleTextureInfo, true)) {
                     grayscaleTextureInfo.index = textureIndex++;
                     std::string grayFileName = fileName.substr(0, fileName.find_last_of('.')) + "GrayScale.png";
                     textureMap_[grayFileName] = grayscaleTextureInfo;
