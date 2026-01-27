@@ -393,13 +393,22 @@ void Overlay::DrawStatBars(ID3D12Device* device) {
     int maxIconLength = std::max((int)bestDmgTypes.size(), (int)worseDmgTypes.size());
     maxIconLength = std::max(maxIconLength, (int)neutralDmgTypes.size());
 
+    std::unordered_map<BarType, int> resistances = {
+        {BarType::Poison, npcParam->resist_poison},
+        {BarType::ScarletRot, npcParam->resist_desease},
+        {BarType::Hemorrhage, npcParam->resist_blood},
+        {BarType::DeathBlight, npcParam->resist_curse},
+        {BarType::Frostbite, npcParam->resist_freeze},
+        {BarType::Sleep, npcParam->resist_sleep},
+        {BarType::Madness, npcParam->resist_madness},
+    };
     std::vector<BarType> immuneEffects = effectBars_
-            | std::views::filter([&targetChrIns](const EffectBar& bar) { return GetTargetMaxValue(bar.type, targetChrIns) >= 999; })
+            | std::views::filter([resistances](const EffectBar& bar) { return resistances.at(bar.type) >= 999; })
             | std::views::transform([](const EffectBar& bar) { return bar.type; })
             | std::ranges::to<std::vector>();
 
     std::vector<BarType> strongestEffects = effectBars_
-            | std::views::filter([&targetChrIns](const EffectBar& bar) { return GetTargetMaxValue(bar.type, targetChrIns) < 999; })
+            | std::views::filter([resistances](const EffectBar& bar) { return resistances.at(bar.type) < 999; })
             | std::views::transform([](const EffectBar& bar) { return bar.type; })
             | std::ranges::to<std::vector>();
 

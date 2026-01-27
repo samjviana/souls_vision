@@ -27,7 +27,7 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
 * **`debug`**: *bool* - Enables or disables debug mode. If set to `true`, a console window will open with the game, showing the same information as the one found in the `souls_vision.log`.
 * **`opacity`**: *float* - Opacity of the overlay, from 0.0 (fully transparent) to 1.0 (fully opaque). This option requires the game to be restarted to take effect.
 * **`delay`**: *int* - Delay in milliseconds before initializing the overlay. Default is `0`. 
-* **`bestEffects`**: *int* - How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `2`.
+* **`bestEffects`**: *int* - How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `7`.
 * **`bestEffectIconSize`**: *int* - Size of the best effect icons. Default is `33`.
 * **`dmgTypeIconSize`**: *int* - Size of the damage type icons. Default is `30`.
 * **`fontSize`**: *float* - Font size of the text displayed on the bars. Default is `18.0`.
@@ -44,7 +44,7 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
 * **`components`**: *object* - Configuration for the components of the overlay.
   * **`hp`|`fp`|`stamina`|`stagger`|`poison`|`scarletRot`|`hemorrhage`|`deathBlight`|`frostbite`|`sleep`|`madness`**: *object* - Bar configuration.
     * **`visible`**: *bool* - If set to `false`, the bar will be hidden. Default is `true`.
-    * **`hideText`**: *bool* - If set to `true`, hides the text displayed on the bar (e.g. “90/219”).
+    * **`hideText`**: *bool* - If set to `true`, hides the text displayed on the bar (e.g. "90/219").
   * **`bestEffects`**: *bool* - If set to `false`, the Best Effects against the enemy will be hidden. Default is `true`.
   * **`immuneEffects`**: *bool* - If set to `false`, the effects that the enemy is immune to will be hidden. Default is `true`.
   * **`dmgTypes`**: *bool* - If set to `false`, the Damage Type information will be hidden. Default is `true`.
@@ -56,29 +56,35 @@ Souls Vision was developed and tested on version **1.16**, it is expected to wor
 
 Although Souls Vision is expected to work with all versions of the game (like stated above), unofficial versions of the game (not original copies) have unpredictable behavior and may not work as expected. Support for these versions is not guaranteed.
 
-### Known Incompatibilities
-1. **Elden Ring Reforged (ERR)** and **Elden Ring Tarnished Edition Overhaul (ERTE)**
+### Known Issues
+1. **Crashes at Startup**
+   * A lot of users have reported crashes at startup when using Souls Vision. I'm aware of this issue and despite being very hard to track down the issue as I can't reproduce it on my end, I've been able to pinpoint a few possible causes along countless debugging sessions:
+     * I'm currently rewriting the whole mod from scratch to try and eliminate any possible cause of this issue.
+2. **Elden Ring Reforged (ERR)** and **Elden Ring Tarnished Edition Overhaul (ERTE)**
    * These mods remove the cooldown before an effect can be re-applied, enabling stacking of effect buildups. This can lead to minor inconsistencies in the overlay's effect buildup tracking.
    * The overlay will still work normally, but the buildup bars will not be as accurate as they are in the base game.
-   * Compatibility with this mechanic is planned for a future update.
-2. **Seamless Coop**
+3. **Seamless Coop**
    * In Seamless Coop some things (like the effect buildup) are done on the client side.
      * When the effect bar is filled and the effect is applied, this information is then communicated to other players. This can cause discrepancies in the overlay, as the buildup bars may differ between players.
    * The overlay will still function normally, but effects applied by one player may not always be reflected correctly for others.
-   * While fixing this issue is part of my plans, I currently don’t know how to address it, and sadly I don't have a timeline for a fix.
-3. **MSI Afterburner** (and other similar overlay software)
+4. **MSI Afterburner** (and other similar overlay software)
    * MSI Afterburner can cause the game to crash at startup when Souls Vision is installed.
    * This issue is caused by the overlay's DirectX hooking conflicting with MSI Afterburner's overlay.
    * Disabling MSI Afterburner's overlay should resolve the issue.
+
+_Although I plan/want to add compatibility with other mods I can't guarantee it will be possible as it depends on how those mods work internally. If you find any incompatibility with other mods please let me know so I can investigate._
 
 ## Installation
 Download the latest version of the mod from one of the following sources:
 * [GitHub Releases](https://github.com/samjviana/souls_vision/releases)
 * [Nexus Mods](https://www.nexusmods.com/eldenring/mods/6968?tab=files)
 
-Add the `souls_vision.dll` to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)(or any other mod loader you prefer that supports DLL loading).
+Add the `souls_vision.dll` (and the assets folder in older versions of the mod) to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)(or any other mod loader you prefer that supports DLL loading).
 
 ## Changelog
+* **[v0.6.0] - 27-01-2026**
+  * Fixed a bug that caused the overlay to show effects incorrectly as immune
+    * This was caused by the way the code was checking for immunities
 * **[v0.5.5] - 16-01-2025**
   * Fixed a bug where the game's module wasn't being found
 * **[v0.5.4] - 16-01-2025**

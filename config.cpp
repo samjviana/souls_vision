@@ -15,7 +15,7 @@ BarSettings Config::statBarSettings;
 ImVec2 Config::bestEffectIconSize = ImVec2(39, 33);
 ImVec2 Config::dmgTypeIconSize = ImVec2(30, 30);
 ImVec2 Config::effectBarIconSize = ImVec2(56, 48);
-int Config::bestEffects = 3;
+int Config::bestEffects = 7;
 int Config::statBarSpacing = 0;
 float Config::fontSize = 18.0f;
 float Config::opacity;
@@ -123,7 +123,7 @@ void Config::LoadConfig(const std::string& configFilePath) {
         fontSizeUpdated = (fontSize != configToml["general"]["fontSize"].value_or(fontSize));
         opacityUpdated = (opacity != configToml["general"]["opacity"].value_or(opacity));
 
-        bestEffects = configToml["appearance"]["bestEffects"].value_or(3);
+        bestEffects = configToml["appearance"]["bestEffects"].value_or(7);
         bestEffectIconSize.x = configToml["appearance"]["bestEffectIconSize"].value_or(39);
         bestEffectIconSize.y = bestEffectIconSize.x * 0.85f;
         dmgTypeIconSize.x = configToml["appearance"]["dmgTypeIconSize"].value_or(30);
@@ -212,7 +212,7 @@ void Config::CreateConfig(const std::string &configFilePath) {
         });
 
         configToml.insert_or_assign("appearance", toml::table{
-                {"bestEffects", 3},
+                {"bestEffects", 7},
                 {"bestEffectIconSize", 39},
                 {"dmgTypeIconSize", 30},
                 {"statBarSpacing", 0},
@@ -283,7 +283,7 @@ void Config::AddComments(const std::string &configFilePath) {
                 {"delay", "Delay in milliseconds before initializing the overlay. Default is `0`"},
                 // appearance
                 {"bestEffectIconSize", "Size of the best effect icons. Default is `33`"},
-                {"bestEffects", "How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `2`"},
+                {"bestEffects", "How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `7`"},
                 {"dmgTypeIconSize", "Size of the damage type icons. Default is 30."},
                 {"hideBlightMadness", "If true, hides Death Blight and Madness bars for common enemies. Default is false."},
                 {"maxEffectBars", "Maximum number of effect bars to show. Default is 7."},
