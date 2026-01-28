@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by PC-SAMUEL on 22/11/2024.
 //
 
@@ -63,7 +63,8 @@ void Overlay::Initialize() {
     HookHelper::SetRenderCallback(Render);
     HookHelper::SetCleanupCallback(CleanupRenderTargets);
 
-    textureCount_ = CountPngResources(gModule);
+    textureCount_ = GetTextureCount();
+    Logger::Info(std::format("Texture count: {}", textureCount_));
 
     if (ImGui::GetCurrentContext()) {
         return;
@@ -91,34 +92,32 @@ void Overlay::Initialize() {
 }
 
 int Overlay::GetTextureCount() {
-    const std::string folderPath = gDllPath + "\\sv_assets\\";
+    auto resEnumCallback = [](HMODULE hModule, const char* lpType, char* lpName, LONG_PTR lParam) -> BOOL {
+        assert(!IS_INTRESOURCE(lpName));
 
-    if (!std::filesystem::exists(folderPath)) {
-        Logger::Error("Folder not found: " + folderPath);
-        return 0;
-    }
+        int* pCount = reinterpret_cast<int*>(lParam);
+        (*pCount)++;
 
-    int count = 0;
-    for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
-        if (!entry.is_regular_file()) {
-            continue;
-        }
-
-        auto filePath = entry.path().string();
-        if (filePath.ends_with(".png") || filePath.ends_with(".jpg")) {
-            count++;
-        }
-
-        for (const auto& effect : effectsNames) {
-            if (filePath.ends_with(effect + ".png") || filePath.ends_with(effect + ".jpg")) {
-                count++;
+        if (!IS_INTRESOURCE(lpName))
+        {
+            std::string filePath = lpName;
+            for (const auto& effect : effectsNames) {
+                std::string effectUppercase = {}; // String resource IDs are converted to uppercase by the RC compiler
+                std::transform(effect.begin(), effect.end(), std::back_insert_iterator(effectUppercase), [](char c) { return std::toupper(c); });
+                if (filePath.ends_with(effectUppercase)) {
+                    (*pCount)++;
+                }
             }
         }
-    }
 
+        return TRUE;
+    };
 
+    int resourceCount = 0;
 
-    return count;
+    EnumResourceNamesA(gModule, MAKEINTRESOURCEA(RT_PNG), resEnumCallback, reinterpret_cast<LONG_PTR>(&resourceCount));
+
+    return resourceCount;
 }
 
 void Overlay::Uninitialize() {
@@ -992,28 +991,28 @@ std::string Overlay::GetTextureNameForType(BarType type, bool grayscale) {
     return textureNames[type];
 }
 
-bool Overlay::LoadTextureFromResource(int resourceID, HMODULE module, ID3D12Device *device, D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle, TextureInfo *textureInfo, bool grayscale) {
-    HRSRC resource = FindResource(module, MAKEINTRESOURCE(resourceID), RT_RCDATA);
+bool Overlay::LoadTextureFromResource(const char* resourceID, HMODULE module, ID3D12Device *device, D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle, TextureInfo *textureInfo, bool grayscale) {
+    HRSRC resource = FindResourceA(module, resourceID, MAKEINTRESOURCEA(RT_PNG));
     if (!resource) {
-        Logger::Error(&"Failed to find resource: " [ resourceID ]);
+        Logger::Error((std::string("Failed to find resource: ") + resourceID));
         return false;
     }
 
     HGLOBAL resourceData = LoadResource(module, resource);
     if (!resourceData) {
-        Logger::Error(&"Failed to load resource: " [ resourceID ]);
+        Logger::Error((std::string("Failed to load resource: ") + resourceID));
         return false;
     }
 
     void *data = LockResource(resourceData);
     if (!data) {
-        Logger::Error(&"Failed to lock resource: " [ resourceID ]);
+        Logger::Error((std::string("Failed to lock resource: ") + resourceID));
         return false;
     }
 
     size_t size = SizeofResource(module, resource);
     if (size == 0) {
-        Logger::Error(&"Failed to get size of resource: " [ resourceID ]);
+        Logger::Error((std::string("Failed to get size of resource: ") + resourceID));
         return false;
     }
 
@@ -1023,41 +1022,30 @@ bool Overlay::LoadTextureFromResource(int resourceID, HMODULE module, ID3D12Devi
 }
 
 void Overlay::LoadAllTexturesResources(ID3D12Device *device) {
-    std::map<std::string, int> resourceMap = {
-            {"Bar.png", IDR_BAR_PNG},
-            {"BarBG.png", IDR_BAR_BG_PNG},
-            {"BarEdge.png", IDR_BAR_EDGE_PNG},
-            {"BarEdge2.png", IDR_BAR_EDGE_2_PNG},
-            {"Blue.png", IDR_BLUE_PNG},
-            {"BuddyWaku.png", IDR_BUDDY_WAKU_PNG},
-            {"ConditionWaku.png", IDR_CONDITION_WAKU_PNG},
-            {"DeathBlight.png", IDR_DEATHBLIGHT_PNG},
-            {"Fire.png", IDR_FIRE_PNG},
-            {"Frostbite.png", IDR_FROSTBITE_PNG},
-            {"Green.png", IDR_GREEN_PNG},
-            {"GreenArrow.png", IDR_GREEN_ARROW_PNG},
-            {"Hemorrhage.png", IDR_HEMORRHAGE_PNG},
-            {"Holy.png", IDR_HOLY_PNG},
-            {"Lightning.png", IDE_LIGHTNING_PNG},
-            {"Madness.png", IDR_MADNESS_PNG},
-            {"Magic.png", IDR_MAGIC_PNG},
-            {"Poison.png", IDR_POISON_PNG},
-            {"Red.png", IDR_RED_PNG},
-            {"RedArrow.png", IDE_RED_ARROW_PNG},
-            {"ScarletRot.png", IDR_SCARLET_ROT_PNG},
-            {"Sleep.png", IDR_SLEEP_PNG},
-            {"Yellow.png", IDR_YELLOW_PNG}
+    const SIZE_T descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    const D3D12_DESCRIPTOR_HEAP_DESC heapDesc = srvHeap_->GetDesc();
+    const D3D12_CPU_DESCRIPTOR_HANDLE heapStart = srvHeap_->GetCPUDescriptorHandleForHeapStart();
+    const D3D12_CPU_DESCRIPTOR_HANDLE heapEnd = {heapStart.ptr + descriptorSize * heapDesc.NumDescriptors};
+    const auto textureCount = textureCount_;
+
+    auto checkHandle = [heapStart, heapEnd, heapDesc, descriptorSize, textureCount](D3D12_CPU_DESCRIPTOR_HANDLE handle)
+    {
+#ifdef _DEBUG
+        UINT descriptorIndex = (handle.ptr - heapStart.ptr) / descriptorSize;
+#endif
+        assert(handle.ptr >= heapStart.ptr && handle.ptr < heapEnd.ptr);
+        return handle;
     };
 
-    D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle = srvHeap_->GetCPUDescriptorHandleForHeapStart();
-    SIZE_T descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle = heapStart;
     srvCpuHandle.ptr += descriptorSize;
 
     int textureIndex = 1;
-    for (const auto& [fileName, resourceID] : resourceMap) {
+    for (const auto& res : TEXTURES) {
+        std::string fileName = res.file_name;
         TextureInfo textureInfo = {};
 
-        if (LoadTextureFromResource(resourceID, gModule, device, srvCpuHandle, &textureInfo)) {
+        if (LoadTextureFromResource(res.resource_id, gModule, device, checkHandle(srvCpuHandle), &textureInfo)) {
             textureInfo.index = textureIndex++;
             textureMap_[fileName] = textureInfo;
             Logger::Info(std::format("Loaded texture: {}", fileName));
@@ -1068,7 +1056,7 @@ void Overlay::LoadAllTexturesResources(ID3D12Device *device) {
                 return fileName.find(effect) != std::string::npos;
             })) {
                 TextureInfo grayscaleTextureInfo = {};
-                if (LoadTextureFromResource(resourceID, gModule, device, srvCpuHandle, &grayscaleTextureInfo, true)) {
+                if (LoadTextureFromResource(res.resource_id, gModule, device, checkHandle(srvCpuHandle), &grayscaleTextureInfo, true)) {
                     grayscaleTextureInfo.index = textureIndex++;
                     std::string grayFileName = fileName.substr(0, fileName.find_last_of('.')) + "GrayScale.png";
                     textureMap_[grayFileName] = grayscaleTextureInfo;
