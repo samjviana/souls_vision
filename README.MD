@@ -82,6 +82,9 @@ Download the latest version of the mod from one of the following sources:
 Add the `souls_vision.dll` (and the assets folder in older versions of the mod) to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)(or any other mod loader you prefer that supports DLL loading).
 
 ## Changelog
+* **[v0.6.1] - 27-01-2026**
+  * Merged @huutaiii PR that fixes some Out of Bounds errors related to SRV allocation
+    * This involved reworking the Texture/Resource counting and loading
 * **[v0.6.0] - 27-01-2026**
   * Fixed a bug that caused the overlay to show effects incorrectly as immune
     * This was caused by the way the code was checking for immunities
@@ -144,6 +147,8 @@ Add the `souls_vision.dll` (and the assets folder in older versions of the mod) 
   * First working version of the mod
 
 ## Credits
+[FromSoftware modding Commmunity](https://discord.gg/mT2JJjx): Easily one of the best modding communities I've been part of. I had a lot of people here saving me from countless problems. </br>
+[@huutaiii](https://github.com/huutaiii) and [@mrj760](https://github.com/mrj760): Thank you both for contributing to this project.
 [Boss Checklist Overlay](https://www.nexusmods.com/eldenring/mods/3859): A lot of the code here helped me with the DirectX hooking.</br>
 [Posture Bar](https://www.nexusmods.com/eldenring/mods/3405): The concept of showing additional "bars" gave me the initial idea.</br>
 [Hunter Pie](https://www.nexusmods.com/monsterhunterrise/mods/181): This is first contact that I had with this idea of Overlay. If you're a Monster Hunter player, I highly recommend it.</br>
