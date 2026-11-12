@@ -6,9 +6,103 @@
 #include "globals.h"
 
 #include <regex>
+#include <cmath>
 #include <toml.hpp>
 
 namespace souls_vision {
+
+namespace {
+
+// Checks whether the string is valid UTF-8 (required by the TOML parser).
+bool IsValidUtf8(const std::string& text) {
+    size_t i = 0;
+    while (i < text.size()) {
+        const unsigned char c = static_cast<unsigned char>(text[i]);
+        size_t extra = 0;
+        if (c < 0x80) {
+            extra = 0;
+        } else if ((c & 0xE0) == 0xC0) {
+            extra = 1;
+        } else if ((c & 0xF0) == 0xE0) {
+            extra = 2;
+        } else if ((c & 0xF8) == 0xF0) {
+            extra = 3;
+        } else {
+            return false;
+        }
+        if (i + extra >= text.size()) {
+            return false;
+        }
+        for (size_t j = 1; j <= extra; j++) {
+            if ((static_cast<unsigned char>(text[i + j]) & 0xC0) != 0x80) {
+                return false;
+            }
+        }
+        i += extra + 1;
+    }
+    return true;
+}
+
+// Reads the config file as UTF-8. Comments written in a legacy ANSI code page
+// (e.g. GBK with Chinese comments) would otherwise make the TOML parser throw
+// and silently reset every setting, so such files are transcoded from the
+// system code page first.
+std::string ReadFileAsUtf8(const std::string& path) {
+    std::ifstream configFile(path, std::ios::binary);
+    if (!configFile.is_open()) {
+        throw std::runtime_error("Failed to open " + path);
+    }
+    std::string raw((std::istreambuf_iterator<char>(configFile)), std::istreambuf_iterator<char>());
+    if (raw.empty() || IsValidUtf8(raw)) {
+        return raw;
+    }
+
+    const int wideLength = MultiByteToWideChar(CP_ACP, 0, raw.c_str(), static_cast<int>(raw.size()), nullptr, 0);
+    if (wideLength <= 0) {
+        return raw;
+    }
+    std::wstring wide(wideLength, L'\0');
+    MultiByteToWideChar(CP_ACP, 0, raw.c_str(), static_cast<int>(raw.size()), wide.data(), wideLength);
+
+    const int utf8Length = WideCharToMultiByte(CP_UTF8, 0, wide.c_str(), wideLength, nullptr, 0, nullptr, nullptr);
+    if (utf8Length <= 0) {
+        return raw;
+    }
+    std::string utf8(utf8Length, '\0');
+    WideCharToMultiByte(CP_UTF8, 0, wide.c_str(), wideLength, utf8.data(), utf8Length, nullptr, nullptr);
+    return utf8;
+}
+
+// Safe table lookups: a missing key or a missing sub-table must never abort the whole config load.
+template <typename Key>
+const toml::table* GetTable(const toml::table& table, const Key& key) {
+    return table[key].as_table();
+}
+
+// Number readers accepting both integers and floats (e.g. `x = 1955` and `x = 1955.0`).
+template <typename NodeView>
+int GetInt(const NodeView& node, int fallback) {
+    if (auto value = node.template value<int64_t>()) {
+        return static_cast<int>(*value);
+    }
+    if (auto value = node.template value<double>()) {
+        return static_cast<int>(std::lround(*value));
+    }
+    return fallback;
+}
+
+template <typename NodeView>
+float GetFloat(const NodeView& node, float fallback) {
+    if (auto value = node.template value<double>()) {
+        return static_cast<float>(*value);
+    }
+    if (auto value = node.template value<int64_t>()) {
+        return static_cast<float>(*value);
+    }
+    return fallback;
+}
+
+} // namespace
 
 Components Config::components;
 BarSettings Config::statBarSettings;
@@ -92,7 +186,7 @@ void Config::SaveConfig(const std::string& configFilePath) {
     }
 }
 
-void Config::LoadConfig(const std::string& configFilePath) {
+bool Config::LoadConfig(const std::string& configFilePath) {
     try {
         toml::table configToml;
 
@@ -100,99 +194,105 @@ void Config::LoadConfig(const std::string& configFilePath) {
             Logger::Info("Config file not found. Creating a new one...");
             CreateConfig(configFilePath);
 
-            std::ifstream configFile(configFilePath);
-            if (!configFile.is_open()) {
-                throw std::runtime_error("Failed to open " + configFilePath + " after creation.");
-            }
-            configToml = toml::parse(configFile);
+            configToml = toml::parse(ReadFileAsUtf8(configFilePath));
         } else {
-            std::ifstream configFile(configFilePath);
-            if (!configFile.is_open()) {
-                throw std::runtime_error("Failed to open " + configFilePath);
-            }
-            configToml = toml::parse(configFile);
+            configToml = toml::parse(ReadFileAsUtf8(configFilePath));
         }
 
         debug = configToml["general"]["debug"].value_or(false);
         dragOverlay = configToml["general"]["dragOverlay"].value_or(false);
         hideBlightMadness = configToml["general"]["hideBlightMadness"].value_or(false);
-        fontSize = configToml["general"]["fontSize"].value_or(18.0f);
-        opacity = configToml["general"]["opacity"].value_or(0.9f);
-        delay = configToml["general"]["delay"].value_or(0);
+        fontSize = GetFloat(configToml["general"]["fontSize"], 18.0f);
+        opacity = GetFloat(configToml["general"]["opacity"], 0.9f);
+        delay = GetInt(configToml["general"]["delay"], 0);
 
-        fontSizeUpdated = (fontSize != configToml["general"]["fontSize"].value_or(fontSize));
-        opacityUpdated = (opacity != configToml["general"]["opacity"].value_or(opacity));
+        fontSizeUpdated = (fontSize != GetFloat(configToml["general"]["fontSize"], fontSize));
+        opacityUpdated = (opacity != GetFloat(configToml["general"]["opacity"], opacity));
 
-        bestEffects = configToml["appearance"]["bestEffects"].value_or(7);
-        bestEffectIconSize.x = configToml["appearance"]["bestEffectIconSize"].value_or(39);
+        bestEffects = GetInt(configToml["appearance"]["bestEffects"], 7);
+        bestEffectIconSize.x = GetInt(configToml["appearance"]["bestEffectIconSize"], 39);
         bestEffectIconSize.y = bestEffectIconSize.x * 0.85f;
-        dmgTypeIconSize.x = configToml["appearance"]["dmgTypeIconSize"].value_or(30);
+        dmgTypeIconSize.x = GetInt(configToml["appearance"]["dmgTypeIconSize"], 30);
         dmgTypeIconSize.y = dmgTypeIconSize.x;
-        statBarSpacing = configToml["appearance"]["statBarSpacing"].value_or(0);
-        maxEffectBars = configToml["appearance"]["maxEffectBars"].value_or(7);
+        statBarSpacing = GetInt(configToml["appearance"]["statBarSpacing"], 0);
+        maxEffectBars = GetInt(configToml["appearance"]["maxEffectBars"], 7);
 
-        auto statBarTable = configToml["statBar"].as_table();
-        if (statBarTable) {
-            auto positionTable = statBarTable->at("position").as_table();
-            if (positionTable) {
-                statBarSettings.position.x = positionTable->at("x").value_or(gGameWindowSize.width - 555 - 5);
-                statBarSettings.position.y = positionTable->at("y").value_or(10);
+        if (const auto statBarTable = GetTable(configToml, "statBar")) {
+            if (const auto positionTable = GetTable(*statBarTable, "position")) {
+                statBarSettings.position.x = GetInt((*positionTable)["x"], gGameWindowSize.width - 555 - 5);
+                statBarSettings.position.y = GetInt((*positionTable)["y"], 10);
             }
 
-            auto sizeTable = statBarTable->at("size").as_table();
-            if (sizeTable) {
-                statBarSettings.size.x = sizeTable->at("width").value_or(555);
-                statBarSettings.size.y = sizeTable->at("height").value_or(40);
+            if (const auto sizeTable = GetTable(*statBarTable, "size")) {
+                statBarSettings.size.x = GetInt((*sizeTable)["width"], 555);
+                statBarSettings.size.y = GetInt((*sizeTable)["height"], 40);
             }
+        }
+
+        // An invalid (zero/negative) size would make the whole overlay invisible.
+        if (statBarSettings.size.x <= 0) {
+            statBarSettings.size.x = 555;
+        }
+        if (statBarSettings.size.y <= 0) {
+            statBarSettings.size.y = 40;
         }
 
         float iconWidth = statBarSettings.size.y * 1.70f;
         effectBarIconSize = ImVec2(iconWidth, iconWidth * 0.85f);
 
-        auto componentsTable = configToml["components"].as_table();
-        if (componentsTable) {
-            components.hp.visible = componentsTable->at("hp").as_table()->at("visible").value_or(true);
-            components.hp.hideText = componentsTable->at("hp").as_table()->at("hideText").value_or(false);
+        if (const auto componentsTable = GetTable(configToml, "components")) {
+            // Reads `<components>.<name>.<key>`. A missing section or key falls back to the default
+            // instead of throwing, so a partially written config still loads.
+            const auto readComponent = [componentsTable](const char* name, const char* key, bool fallback) {
+                const auto componentTable = GetTable(*componentsTable, name);
+                return componentTable ? (*componentTable)[key].value_or(fallback) : fallback;
+            };
 
-            components.fp.visible = componentsTable->at("fp").as_table()->at("visible").value_or(true);
-            components.fp.hideText = componentsTable->at("fp").as_table()->at("hideText").value_or(false);
+            components.hp.visible = readComponent("hp", "visible", true);
+            components.hp.hideText = readComponent("hp", "hideText", false);
 
-            components.stamina.visible = componentsTable->at("stamina").as_table()->at("visible").value_or(true);
-            components.stamina.hideText = componentsTable->at("stamina").as_table()->at("hideText").value_or(false);
+            components.fp.visible = readComponent("fp", "visible", true);
+            components.fp.hideText = readComponent("fp", "hideText", false);
 
-            components.stagger.visible = componentsTable->at("stagger").as_table()->at("visible").value_or(true);
-            components.stagger.hideText = componentsTable->at("stagger").as_table()->at("hideText").value_or(false);
+            components.stamina.visible = readComponent("stamina", "visible", true);
+            components.stamina.hideText = readComponent("stamina", "hideText", false);
 
-            components.poison.visible = componentsTable->at("poison").as_table()->at("visible").value_or(true);
-            components.poison.hideText = componentsTable->at("poison").as_table()->at("hideText").value_or(false);
+            components.stagger.visible = readComponent("stagger", "visible", true);
+            components.stagger.hideText = readComponent("stagger", "hideText", false);
 
-            components.scarletRot.visible = componentsTable->at("scarletRot").as_table()->at("visible").value_or(true);
-            components.scarletRot.hideText = componentsTable->at("scarletRot").as_table()->at("hideText").value_or(false);
+            components.poison.visible = readComponent("poison", "visible", true);
+            components.poison.hideText = readComponent("poison", "hideText", false);
 
-            components.hemorrhage.visible = componentsTable->at("hemorrhage").as_table()->at("visible").value_or(true);
-            components.hemorrhage.hideText = componentsTable->at("hemorrhage").as_table()->at("hideText").value_or(false);
+            components.scarletRot.visible = readComponent("scarletRot", "visible", true);
+            components.scarletRot.hideText = readComponent("scarletRot", "hideText", false);
 
-            components.deathBlight.visible = componentsTable->at("deathBlight").as_table()->at("visible").value_or(true);
-            components.deathBlight.hideText = componentsTable->at("deathBlight").as_table()->at("hideText").value_or(false);
+            components.hemorrhage.visible = readComponent("hemorrhage", "visible", true);
+            components.hemorrhage.hideText = readComponent("hemorrhage", "hideText", false);
 
-            components.frostbite.visible = componentsTable->at("frostbite").as_table()->at("visible").value_or(true);
-            components.frostbite.hideText = componentsTable->at("frostbite").as_table()->at("hideText").value_or(false);
+            components.deathBlight.visible = readComponent("deathBlight", "visible", true);
+            components.deathBlight.hideText = readComponent("deathBlight", "hideText", false);
 
-            components.sleep.visible = componentsTable->at("sleep").as_table()->at("visible").value_or(true);
-            components.sleep.hideText = componentsTable->at("sleep").as_table()->at("hideText").value_or(false);
+            components.frostbite.visible = readComponent("frostbite", "visible", true);
+            components.frostbite.hideText = readComponent("frostbite", "hideText", false);
 
-            components.madness.visible = componentsTable->at("madness").as_table()->at("visible").value_or(true);
-            components.madness.hideText = componentsTable->at("madness").as_table()->at("hideText").value_or(false);
+            components.sleep.visible = readComponent("sleep", "visible", true);
+            components.sleep.hideText = readComponent("sleep", "hideText", false);
 
-            components.bestEffects = componentsTable->at("bestEffects").value_or(true);
-            components.immuneEffects = componentsTable->at("immuneEffects").value_or(true);
-            components.dmgTypes = componentsTable->at("dmgTypes").value_or(true);
-            components.neutralDmgTypes = componentsTable->at("neutralDmgTypes").value_or(false);
+            components.madness.visible = readComponent("madness", "visible", true);
+            components.madness.hideText = readComponent("madness", "hideText", false);
+
+            components.bestEffects = (*componentsTable)["bestEffects"].value_or(true);
+            components.immuneEffects = (*componentsTable)["immuneEffects"].value_or(true);
+            components.dmgTypes = (*componentsTable)["dmgTypes"].value_or(true);
+            components.neutralDmgTypes = (*componentsTable)["neutralDmgTypes"].value_or(false);
         }
 
         Logger::Info("Config loaded successfully.");
+        return true;
     } catch (const std::exception& e) {
         Logger::Error(std::string("Config::LoadConfig - Error: ") + e.what());
+        Logger::Error("Keeping the current config file untouched. Check its syntax (values must be UTF-8, numbers may be written with or without decimals).");
+        return false;
     }
 }
 

@@ -35,7 +35,7 @@ public:
     static int maxEffectBars;
 
     static void SaveConfig(const std::string& configFilePath);
-    static void LoadConfig(const std::string& configFilePath);
+    static bool LoadConfig(const std::string& configFilePath);
     static void AddComments(const std::string& configFilePath);
 
 private:
