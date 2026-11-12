@@ -36,8 +36,10 @@ DWORD WINAPI Setup(LPVOID lpParam) {
     }
     gGameWindowSize = GetWindowSize(gGameWindow);
 
-    Config::LoadConfig(gConfigFilePath);
-    Config::SaveConfig(gConfigFilePath);
+    const bool configLoaded = Config::LoadConfig(gConfigFilePath);
+    if (configLoaded) {
+        Config::SaveConfig(gConfigFilePath);
+    }
     if (Config::debug) {
         Logger::InitializeDebug();
     }
@@ -80,8 +82,9 @@ void MainThread() {
                 lastWriteTime = currentWriteTime;
 
                 Logger::Info("Config file updated. Reloading...");
-                Config::LoadConfig(gConfigFilePath);
-                Config::configUpdated = true;
+                if (Config::LoadConfig(gConfigFilePath)) {
+                    Config::configUpdated = true;
+                }
             }
         } catch (const std::exception& e) {
             Logger::Error(std::string("Error checking config file: ") + e.what());

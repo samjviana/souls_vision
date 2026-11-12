@@ -33,9 +33,10 @@ public:
     static bool fontSizeUpdated;
     static bool hideBlightMadness;
     static int maxEffectBars;
+    static std::string assetPack;
 
     static void SaveConfig(const std::string& configFilePath);
-    static void LoadConfig(const std::string& configFilePath);
+    static bool LoadConfig(const std::string& configFilePath);
     static void AddComments(const std::string& configFilePath);
 
 private:
