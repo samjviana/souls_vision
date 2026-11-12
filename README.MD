@@ -27,6 +27,7 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
 * **`debug`**: *bool* - Enables or disables debug mode. If set to `true`, a console window will open with the game, showing the same information as the one found in the `souls_vision.log`.
 * **`opacity`**: *float* - Opacity of the overlay, from 0.0 (fully transparent) to 1.0 (fully opaque). This option requires the game to be restarted to take effect.
 * **`delay`**: *int* - Delay in milliseconds before initializing the overlay. Default is `0`. 
+* **`assetPack`**: *string* - Name of the subfolder inside `sv_assets` to load the icon textures from (e.g. `chinese`). Any file missing from the pack falls back to the textures bundled in the DLL. Set to `default` to use only the bundled textures. Changing this requires restarting the game. Default is `default`. See [Asset Packs](#asset-packs).
 * **`bestEffects`**: *int* - How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `7`.
 * **`bestEffectIconSize`**: *int* - Size of the best effect icons. Default is `33`.
 * **`dmgTypeIconSize`**: *int* - Size of the damage type icons. Default is `30`.
@@ -36,7 +37,7 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
 * **`hideBlightMadness`**: *bool* - If set to `true`, the Death Blight and Madness bars will be hidden for common enemies. Default is `false`.
 * **`statBar`**: *object* - Configuration related to the bars.
   * **`position`**: *object* - Determines the bar’s on-screen position from top-left to bottom-right.
-    * **`x`**: *int* - Horizontal position of the bar in pixels.
+    * **`x`**: *int* - Horizontal position of the bar in pixels (the damage type icons are drawn to the left of this point).
     * **`y`**: *int* - Vertical position of the bar in pixels.
   * **`size`**: *object* - Defines the bar’s dimensions.
     * **`width`**: *int* - Width of the bar in pixels.
@@ -50,6 +51,13 @@ Souls Vision adds a customizable overlay to the top-right corner of the screen (
   * **`dmgTypes`**: *bool* - If set to `false`, the Damage Type information will be hidden. Default is `true`.
   * **`neutralDmgTypes`**: *bool* - If set to `true`, the Neutral Damage Type information will be shown. Default is `false`.
 </details>
+
+## Asset Packs
+Icon textures can be swapped without touching the bundled ones by using asset packs. An asset pack is simply a subfolder of `sv_assets` containing PNG files with the same names as the textures they replace (e.g. `sv_assets/chinese/Fire.png`).
+
+* The bundled textures were moved to `sv_assets/default` and are always available as a fallback: if a texture is missing from the selected pack, the bundled one is used instead. This means a pack only needs to contain the files it actually changes.
+* A `chinese` pack with translated status/damage-type icons is included with the mod. To use it, set `assetPack = "chinese"` in the `[general]` section of the config file (and restart the game).
+* To create your own pack (e.g. another language or a custom icon set), create a folder under `sv_assets`, name it after your pack, drop in any textures you want to replace, and point `assetPack` to it.
 
 ## Compatibility
 Souls Vision was developed and tested on version **1.16**, it is expected to work with previous and future versions as long as the game’s internal structures remain unchanged since it relies on memory reading. Some incompatibilities with mods that deal with game's FPS are expected as Souls Vision is tied to the game's rendering methods. Either way, let me know if any kind of error occurs.
@@ -82,6 +90,16 @@ Download the latest version of the mod from one of the following sources:
 Add the `souls_vision.dll` (and the assets folder in older versions of the mod) to the `mods` folder from [Elden Mod Loader](https://www.nexusmods.com/eldenring/mods/117)(or any other mod loader you prefer that supports DLL loading).
 
 ## Changelog
+* **[Unreleased]**
+  * Added a new `assetPack` config option to select which asset pack subfolder inside `sv_assets` the icon textures are loaded from
+    * Files missing from the selected pack fall back to the textures bundled in the DLL
+  * Added a built-in `chinese` asset pack with translated status/damage-type icons
+  * Restructured `sv_assets` into `sv_assets/default` to support asset packs
+  * Fixed the config file failing to load when it contains characters in a legacy code page (e.g. Chinese comments saved as GBK), which silently reset every setting
+    * The config is no longer overwritten with defaults when it fails to parse
+    * Numeric values now accept both integers and decimals (e.g. `x = 1955` and `x = 1955.0`)
+    * An invalid (zero) bar size falls back to the default instead of making the overlay invisible
+    * Missing keys or sections now fall back to their default values instead of aborting the whole load
 * **[v0.6.1] - 27-01-2026**
   * Merged @huutaiii PR that fixes some Out of Bounds errors related to SRV allocation
     * This involved reworking the Texture/Resource counting and loading

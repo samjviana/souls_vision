@@ -19,6 +19,8 @@
 #include <string>
 #include <algorithm>
 #include <ranges>
+#include <fstream>
+#include <vector>
 
 #include <backends/imgui_impl_dx12.h>
 #include <backends/imgui_impl_win32.h>
@@ -1040,12 +1042,45 @@ void Overlay::LoadAllTexturesResources(ID3D12Device *device) {
     D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle = heapStart;
     srvCpuHandle.ptr += descriptorSize;
 
+    // Optional asset pack: textures are first looked up in <dll dir>\sv_assets\<assetPack>\<file name>,
+    // falling back to the textures bundled in the DLL when the file is missing.
+    std::string assetPackDir;
+    if (!Config::assetPack.empty() && Config::assetPack != "default") {
+        assetPackDir = gDllPath + "\\sv_assets\\" + Config::assetPack + "\\";
+        if (!std::filesystem::exists(assetPackDir)) {
+            Logger::Error(std::format("Asset pack folder not found, falling back to bundled textures: {}", assetPackDir));
+            assetPackDir.clear();
+        } else {
+            Logger::Info(std::format("Using asset pack: {}", Config::assetPack));
+        }
+    }
+
+    auto loadTexture = [&device, &checkHandle, &srvCpuHandle, &assetPackDir](const char* resourceID, const std::string& fileName, TextureInfo* textureInfo, bool grayscale) -> bool {
+        if (!assetPackDir.empty()) {
+            std::ifstream file(assetPackDir + fileName, std::ios::binary | std::ios::ate);
+            if (file.is_open()) {
+                const std::streamsize fileSize = file.tellg();
+                if (fileSize > 0) {
+                    std::vector<unsigned char> fileData(static_cast<size_t>(fileSize));
+                    file.seekg(0);
+                    file.read(reinterpret_cast<char *>(fileData.data()), fileSize);
+                    if (file.good() && LoadTextureFromMemory(fileData.data(), fileData.size(), device, checkHandle(srvCpuHandle), textureInfo, Config::opacity, grayscale)) {
+                        Logger::Info(std::format("Loaded texture from asset pack: {}", fileName));
+                        return true;
+                    }
+                    Logger::Error(std::format("Failed to load texture from asset pack, falling back to bundled texture: {}", fileName));
+                }
+            }
+        }
+        return LoadTextureFromResource(resourceID, gModule, device, checkHandle(srvCpuHandle), textureInfo, grayscale);
+    };
+
     int textureIndex = 1;
     for (const auto& res : TEXTURES) {
         std::string fileName = res.file_name;
         TextureInfo textureInfo = {};
 
-        if (LoadTextureFromResource(res.resource_id, gModule, device, checkHandle(srvCpuHandle), &textureInfo)) {
+        if (loadTexture(res.resource_id, fileName, &textureInfo, false)) {
             textureInfo.index = textureIndex++;
             textureMap_[fileName] = textureInfo;
             Logger::Info(std::format("Loaded texture: {}", fileName));
@@ -1056,7 +1091,7 @@ void Overlay::LoadAllTexturesResources(ID3D12Device *device) {
                 return fileName.find(effect) != std::string::npos;
             })) {
                 TextureInfo grayscaleTextureInfo = {};
-                if (LoadTextureFromResource(res.resource_id, gModule, device, checkHandle(srvCpuHandle), &grayscaleTextureInfo, true)) {
+                if (loadTexture(res.resource_id, fileName, &grayscaleTextureInfo, true)) {
                     grayscaleTextureInfo.index = textureIndex++;
                     std::string grayFileName = fileName.substr(0, fileName.find_last_of('.')) + "GrayScale.png";
                     textureMap_[grayFileName] = grayscaleTextureInfo;

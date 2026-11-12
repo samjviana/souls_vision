@@ -121,6 +121,7 @@ bool Config::opacityUpdated = false;
 bool Config::fontSizeUpdated = false;
 bool Config::hideBlightMadness = false;
 int Config::maxEffectBars = 7;
+std::string Config::assetPack = "default";
 
 void Config::SaveConfig(const std::string& configFilePath) {
     try {
@@ -132,6 +133,7 @@ void Config::SaveConfig(const std::string& configFilePath) {
                 {"fontSize", fontSize},
                 {"opacity", opacity},
                 {"delay", delay},
+                {"assetPack", assetPack},
         });
 
         configToml.insert_or_assign("appearance", toml::table{
@@ -205,6 +207,7 @@ bool Config::LoadConfig(const std::string& configFilePath) {
         fontSize = GetFloat(configToml["general"]["fontSize"], 18.0f);
         opacity = GetFloat(configToml["general"]["opacity"], 0.9f);
         delay = GetInt(configToml["general"]["delay"], 0);
+        assetPack = configToml["general"]["assetPack"].value_or(std::string("default"));
 
         fontSizeUpdated = (fontSize != GetFloat(configToml["general"]["fontSize"], fontSize));
         opacityUpdated = (opacity != GetFloat(configToml["general"]["opacity"], opacity));
@@ -308,7 +311,8 @@ void Config::CreateConfig(const std::string &configFilePath) {
                 {"hideBlightMadness", false},
                 {"fontSize", 18.0f},
                 {"opacity", 0.9f},
-                {"delay", 0}
+                {"delay", 0},
+                {"assetPack", "default"}
         });
 
         configToml.insert_or_assign("appearance", toml::table{
@@ -381,6 +385,7 @@ void Config::AddComments(const std::string &configFilePath) {
                 {"fontSize", "Font size of the text displayed on the bars. Default is `18.0`"},
                 {"opacity", "Opacity of the overlay, from 0.0 (fully transparent) to 1.0 (fully opaque). This option requires the game to be restarted to take effect"},
                 {"delay", "Delay in milliseconds before initializing the overlay. Default is `0`"},
+                {"assetPack", "Name of the subfolder inside `sv_assets` to load icon textures from. Missing files fall back to the textures bundled in the DLL. Set to `default` to use only the bundled textures. Changing this requires restarting the game. Default is `default`"},
                 // appearance
                 {"bestEffectIconSize", "Size of the best effect icons. Default is `33`"},
                 {"bestEffects", "How many of the best effects to show on the overlay. The effects are sorted (left to right) by the lowest value necessary to trigger them. Default is `7`"},
